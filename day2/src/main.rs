@@ -3,11 +3,9 @@ use std::io::prelude::*;
 
 fn problem_1(content : &String) -> i32 {
 	return content.lines()
-			.map(
-				|line| line.split("\t").map(|number : &str| number.parse::<i32>().unwrap()).collect::<Vec<i32>>()
-			)
-			.map(|row : Vec<i32>| (row.iter().max().unwrap() - row.iter().min().unwrap()))
-			.sum();
+		.map(|line| line.split("\t").map(|number : &str| number.parse::<i32>().unwrap()).collect::<Vec<i32>>())
+		.map(|row : Vec<i32>| (row.iter().max().unwrap() - row.iter().min().unwrap()).abs())
+		.sum();
 }
 
 fn problem_2(content : &String) -> i32 {
