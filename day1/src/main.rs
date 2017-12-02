@@ -4,28 +4,21 @@ fn get_char_at(index : usize, input : &str) -> char {
 	return input.chars().nth(index % input.len()).unwrap();
 }
 
-fn sum_of_repeating_digits(input_code : &str) -> u32 {
-	let mut sum : u32 = 0;
-
-	for index in 0..input_code.len() {
-		if get_char_at(index, input_code) == get_char_at(index + 1, input_code) {
-			sum += get_char_at(index, input_code).to_digit(10).unwrap();
-		}
-	}
+fn sum_of_repeating_digits(input : &str) -> u32 {
+	let sum : u32 = (0 ..input.len())
+		.filter(|&i| get_char_at(i, input) == get_char_at(i + 1, input))
+		.map(|i| get_char_at(i, input).to_digit(10).unwrap())
+		.sum();
 
 	(sum)
 
 }
 
-fn sum_of_repeating_digits_halfway(input_code : &str) -> u32 {
-	let mut sum : u32 = 0;
-
-	for index in 0..(input_code.len() / 2) {
-		if get_char_at(index, input_code) == get_char_at(index + input_code.len() / 2, input_code) {
-			sum += get_char_at(index, input_code).to_digit(10).unwrap();
-		}
-	}
-
+fn sum_of_repeating_digits_halfway(input : &str) -> u32 {
+	let sum : u32 = (0 ..input.len() / 2)
+		.filter(|&i| get_char_at(i, input) == get_char_at(i + input.len() / 2, input))
+		.map(|i| get_char_at(i, input).to_digit(10).unwrap())
+		.sum();
 	(sum * 2)
 
 }
