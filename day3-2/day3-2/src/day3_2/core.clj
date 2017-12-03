@@ -39,10 +39,8 @@
 (defn sum-surrounding-values [spiral coordinate]
   (reduce +
     (map
-      #(if (nil? %) 0 %)
-      (map
-        #(value-at-offset spiral coordinate %)
-        directions))))
+        #(or (value-at-offset spiral coordinate %) 0)
+        directions)))
 
 (defn new-value-at-coordinate [spiral n coordinate]
   (case n
