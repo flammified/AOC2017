@@ -15,7 +15,14 @@
     (dec offset)
     (inc offset)))
 
-(defn steps-to-termination [stack position n]
+(defn steps-to-termination-part-1 [stack position n]
+  (let [done (out-of-bounds? stack position)]
+    (if done
+      n
+      (let [steps (get stack position)]
+        (recur (update-in stack [position] inc) (+ position steps) (inc n))))))
+
+(defn steps-to-termination-part-2 [stack position n]
   (let [done (out-of-bounds? stack position)]
     (if done
       n
@@ -24,4 +31,4 @@
 
 
 (defn -main []
-  (println (steps-to-termination (parse-input input) 0 0)))
+  (println (steps-to-termination-part-2 (parse-input input) 0 0)))
