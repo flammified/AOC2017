@@ -40,7 +40,7 @@
 
 (defn first-repeating-configuration [history stack n]
   (if (duplicates-in-vec history)
-    (list (dec n) stack)
+    stack
     (let [next-stack (redistribute stack)]
       (recur (conj history stack) next-stack (inc n)))))
 
