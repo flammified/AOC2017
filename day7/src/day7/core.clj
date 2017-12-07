@@ -1,50 +1,23 @@
 (ns day7.core
-  (:use [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [day7.parsing :refer [create-stack]]))
 
 (def text (slurp "input.txt"))
-
-(defn split-line-parts [line]
-  (if (nil? (index-of line "->"))
-    [line nil]
-    (map trim (str/split line #"->"))))
-
-(defn parse-weight [weight]
-  (read-string (apply str (filter (fn [x] (Character/isDigit x)) weight))))
-
-(defn parse-identification [identification]
-  (let [[name weight] (split identification #" ")]
-    {:name name
-     :weight (parse-weight weight)}))
-
-(defn parse-subtowers [subtower-str]
-  (if (nil? subtower-str)
-    []
-    (vec (map trim (split subtower-str #",")))))
-
-(defn parse-line [stack line]
-  (let [[identification-str subtowers-str] (split-line-parts line)
-        identity (parse-identification identification-str)
-        subtowers (parse-subtowers subtowers-str)
-        tower {:weight (:weight identity)
-               :name (:name identity)
-               :subtowers subtowers}]
-    (assoc stack (:name tower) tower)))
-
-(defn create-stack [input]
-  (reduce parse-line {} (str/split-lines input)))
 
 (defn seq-contains? [coll target]
   (some #(= target %) coll))
 
 (defn contains-child? [child to-check]
-  ; (println (:subtowers (second to-check)) child)
   (seq-contains? (:subtowers (second to-check)) (:name child)))
 
 (defn find-previous [stack to-find]
   (second (first (filter (partial contains-child? to-find) stack))))
 
+(defn child-from-name [stack name]
+  (get stack name))
+
 (defn random-name-in-map [stack]
-  (second (second (get stack (rand-nth (keys stack))))))
+  (second (second (child-from-name (rand-nth (keys stack))))))
 
 (defn root-tower [stack from]
   (let [previous (find-previous stack from)]
@@ -52,8 +25,47 @@
       from
       (recur stack previous))))
 
+;; Part 2
+
+(defn sum-tower [stack tower]
+  (let [subtowers (:subtowers tower)]
+    (println tower)
+    (if (== (count subtowers) 0)
+      (:weight tower)
+      (reduce
+        +
+        (map
+          (partial sum-tower stack)
+          (map
+            (partial child-from-name stack)
+            subtowers))))))
+
+(defn same? [vec]
+  (apply = vec))
+
+(defn all-subtowers-sum-same? [stack tower]
+  (same?
+         (map
+           (partial sum-tower stack)
+           (map
+             (partial child-from-name stack)
+             (:subtowers tower)))))
+
+(defn find-problem-parent [stack tower]
+  (let [subtowers (:subtowers tower)]
+    (if ((== (count subtowers) 0))
+      nil
+      (if (not (all-subtowers-sum-same? stack tower))
+        tower
+        (first (filter
+                 (fn [x] (not (nil? x)))
+                 (map find-problem-parent
+                   (map
+                     (partial child-from-name stack)
+                     subtowers))))))))
+
 (defn -main []
   (let [stack (create-stack text)
         random-key "ttrgg"
         random-child (get stack random-key)]
-    (println (root-tower stack random-child))))
+    (println (find-problem-parent stack (root-tower stack random-child)))))
