@@ -13,13 +13,23 @@
 (defn wraps? [list start length]
   (>= (+ start length) (count list)))
 
-(defn split-with-wrap [list start length]
-  (let [reversed-sub (vec (reverse (take length (drop start (cycle list)))))
-        sublist-split (- (count reversed-sub) (- (+ start length) (count list)))
+(defn reverse-wrapping-sublist [list start length]
+  (vec (reverse (take length (drop start (cycle list))))))
+
+(defn wraps-at [wrapping-list start length max]
+  (- (count wrapping-list) (- (+ start length) max)))
+
+(defn middle-of-list [list front-offset back-offset]
+  (let [back-removed (drop-last back-offset list)
+        front-removed (drop front-offset back-removed)]
+    front-removed))
+
+(defn split-with-wrap [circle start length]
+  (let [reversed-sub  (reverse-wrapping-sublist circle start length)
+        sublist-split (wraps-at reversed-sub start length (count circle))
         split-reversed (split-at sublist-split reversed-sub)
-        back-removed (drop-last (count (first split-reversed)) list)
-        front-removed (drop (count (second split-reversed)) back-removed)]
-    (vec (concat (vec (second split-reversed)) front-removed (vec (first split-reversed))))))
+        middle-of-list (middle-of-list circle (count (second split-reversed)) (count (first split-reversed)))]
+    (vec (concat (vec (second split-reversed)) middle-of-list (vec (first split-reversed))))))
 
 (defn reverse-sublist [list start length]
   (if (wraps? list start length)
@@ -44,4 +54,4 @@
 (defn -main []
   (let [knot-lengths (parse-numbers text)
         output (knot-list (vec (range 0 256)) knot-lengths 0 0)]
-    (println output)))
+    (println (multiply-first-two output))))
