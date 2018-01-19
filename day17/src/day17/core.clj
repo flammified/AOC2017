@@ -16,11 +16,15 @@
        state
        (recur x steps (inc next-cursor) new-state (inc n))))))
 
-(defn index-1-after-x  [x steps])
-
-
-
-
+(defn index-1-after-x  [x steps]
+  (reduce
+    (fn [[cursor value] next]
+      (let [next-cursor (+ 1 (mod (+ cursor steps) next))]
+        (if (== next-cursor 1)
+          [next-cursor next]
+          [next-cursor value])))
+    [0 0]
+    (range 1 x)))
 
 (defn -main []
   (let [part1 (spinlock 2017 394)
