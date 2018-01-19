@@ -68,12 +68,10 @@
       (conj states last-state))))
 
 (defn run-program [input]
-  (reduce
-    run-instruction
-    []
-    (map
-      parse-instruction
-      (str/split-lines input))))
+  (->> input
+    (str/split-lines)
+    (map parse-instruction)
+    (reduce run-instruction [])))
 
 (defn highest-ever-state [states]
   (reduce max (map (fn [state] (second (highest-register state))) states)))
