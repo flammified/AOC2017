@@ -1,7 +1,0 @@
-nil
-nil + nil + nil + 5 + nil
-+ (nil 5 5 5 nil)
-(+ nil 5 5 5 nil)
-lein run
-ls
-(== nil 5)
