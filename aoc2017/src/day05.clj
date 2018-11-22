@@ -1,8 +1,9 @@
-(ns day5.core
-  (require [clojure.string :as str]))
+(ns day05
+  (:require [clojure.string :as str]
+            [clojure.java.io :as io]))
 
-(def input (slurp "input-day5.txt"))
-(def test-input)
+(def input
+  (-> "day5/input.txt" io/resource io/file slurp))
 
 (defn parse-input [text]
   (vec (map read-string (str/split-lines text))))
@@ -29,6 +30,8 @@
       (let [steps (get stack position)]
         (recur (update-in stack [position] new-offset) (+ position steps) (inc n))))))
 
+(defn part-1 []
+  (steps-to-termination-part-1 (parse-input input) 0 0))
 
-(defn -main []
-  (println (steps-to-termination-part-2 (parse-input input) 0 0)))
+(defn part-2 []
+  (steps-to-termination-part-2 (parse-input input) 0 0))

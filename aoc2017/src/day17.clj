@@ -1,4 +1,4 @@
-(ns day17.core)
+(ns day17)
 
 (defn around [values value x]
   (let [index (.indexOf values value)
@@ -26,8 +26,8 @@
     [0 0]
     (range 1 x)))
 
-(defn -main []
-  (let [part1 (spinlock 2017 394)
-        part2 (index-1-after-x 50000000 394)]
-    (println (around part1 2017 5))
-    (println part2)))
+(defn part-1 []
+  (around (spinlock 2017 394) 2017 5))
+
+(defn part-2 []
+  (index-1-after-x 50000000 394))

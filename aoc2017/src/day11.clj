@@ -1,7 +1,9 @@
-(ns day11.core
-  (:use [clojure.string :as str]))
+(ns day11
+  (:require [clojure.string :as str]
+            [clojure.java.io :as io]))
 
-(def text (slurp "input.txt"))
+(def text
+  (-> "day11/input.txt" io/resource io/file slurp))
 
 (defn direction-to-coords [direction]
   (case direction
@@ -13,7 +15,7 @@
     :northwest [-1 1 0]))
 
 (defn string-to-direction [input-str]
-  (case (trim input-str)
+  (case (str/trim input-str)
     "n" :north
     "ne" :northeast
     "se" :southeast
@@ -39,10 +41,14 @@
 (defn max-distance [positions]
   (reduce (fn [s n] (max (distance n) s)) 0 positions))
 
-(defn -main []
+(defn part-1 []
+  (let [steps (parse-input text)
+        rel-coords (steps-to-relative-coords steps)]
+    (distance rel-coords)))
+
+(defn part-2 []
   (let [steps (parse-input text)
         rel-coords (steps-to-relative-coords steps)
         list-of-positions (list-of-positions steps)
         max-distance (max-distance list-of-positions)]
-    (println (distance rel-coords))
-    (println max-distance)))
+    max-distance))

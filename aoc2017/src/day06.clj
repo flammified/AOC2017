@@ -1,7 +1,10 @@
-(ns day6.core
-  (:use [clojure.string :as str]))
+(ns day06
+  (:require [clojure.string :as str]
+            [clojure.java.io :as io]))
 
-(def input (slurp "input.txt"))
+(def input
+  (-> "day6/input.txt" io/resource io/file slurp))
+
 (def solution-from-part-1 [0 14 13 12 10 9 9 7 7 5 5 4 2 2 1 12])
 
 (defn parse-input [input]
@@ -40,9 +43,12 @@
 
 (defn first-repeating-configuration [history stack n]
   (if (duplicates-in-vec history)
-    stack
+    [stack (- n 1)]
     (let [next-stack (redistribute stack)]
       (recur (conj history stack) next-stack (inc n)))))
 
-(defn -main []
-  (println (cycles-until solution-from-part-1 solution-from-part-1 0)))
+(defn part-1 []
+  (first-repeating-configuration [] (parse-input input) 0))
+
+(defn part-2 []
+  (cycles-until solution-from-part-1 solution-from-part-1 0))

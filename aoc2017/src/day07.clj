@@ -1,8 +1,10 @@
-(ns day7.core
+(ns day07
   (:require [clojure.string :as str]
-            [day7.parsing :refer [create-stack]]))
+            [clojure.java.io :as io]
+            [day7-parsing :refer [create-stack]]))
 
-(def text (slurp "input.txt"))
+(def text
+  (-> "day7/input.txt" io/resource io/file slurp))
 
 (defn seq-contains? [coll target]
   (some #(= target %) coll))
@@ -14,9 +16,7 @@
   (second (first (filter (partial contains-child? to-find) stack))))
 
 (defn child-from-name [stack name]
-  (if (nil? name)
-    nil
-    (get stack name)))
+  (get stack name))
 
 (defn random-name-in-map [stack]
   (second (second (child-from-name (rand-nth (keys stack))))))
@@ -32,55 +32,43 @@
   (let [subtowers (:subtowers tower)]
     (if (== (count subtowers) 0)
       (:weight tower)
-      (+ (:weight tower)
-         (reduce
-           +
-           (map
-             (partial sum-tower stack)
-             (map
-               (partial child-from-name stack)
-               subtowers)))))))
+      (->> subtowers
+        (map (partial child-from-name stack))
+        (map (partial sum-tower stack))
+        (reduce +)
+        (+ (:weight tower))))))
+
 
 (defn sums-of-subtowers [stack subtowers]
-  (map
-    (partial sum-tower stack)
-    (map
-       (partial child-from-name stack)
-       subtowers)))
-
-(defn same? [vec]
-  (apply = vec))
+  (->> subtowers
+    (map (partial child-from-name stack))
+    (map (partial sum-tower stack))))
 
 (defn odd-one-out [stack subtowers]
   (let [sums (sums-of-subtowers stack subtowers)
-        a (println sums)
-        odd-sum (first
-                  (first
-                    (filter
-                      #(== 1 (second %))
-                      (frequencies sums))))]
+        [odd-sum _] (some
+                      #(if (== 1 (second %)) %)
+                      (frequencies sums))]
+
     (if (nil? odd-sum)
       nil
-      (first
-        (first
-          (filter
-            #(== odd-sum (second %))
-            (map vector subtowers sums)))))))
+      (ffirst
+        (filter
+          #(== odd-sum (second %))
+          (map vector subtowers sums))))))
 
 (defn has-no-items? [sequence]
   (== (count sequence) 0))
 
 (defn find-lowest-problem-parent [stack tower]
-  (let [subtowers (:subtowers tower)]
-    (if (has-no-items? subtowers)
+  (let [subtowers (:subtowers tower)
+        child-with-problem (child-from-name stack (odd-one-out stack subtowers))]
+    (if (nil? child-with-problem)
       nil
-      (let [different-value (child-from-name stack (odd-one-out stack subtowers))]
-        (if (nil? different-value)
-          nil
-          (let [problem-in-child (find-lowest-problem-parent stack different-value)]
-            (if (nil? problem-in-child)
-              [tower different-value]
-              problem-in-child)))))))
+      (let [problem-in-child (find-lowest-problem-parent stack child-with-problem)]
+        (if (nil? problem-in-child)
+          [tower child-with-problem]
+          problem-in-child)))))
 
 (defn vec-remove
   "remove elem in coll"
@@ -91,7 +79,6 @@
   (get haystack (get (vec-remove (vec (range (count haystack))) (.indexOf haystack needle)) 0)))
 
 (defn what-to-do [stack [parent child]]
-  (println parent child)
   (let [subtowers (:subtowers parent)
         name-of-child (:name child)
         correct-sum (sum-tower stack (child-from-name stack (random-except subtowers name-of-child)))
@@ -99,8 +86,12 @@
         difference (- incorrect-sum correct-sum)]
     (- (:weight child) difference)))
 
-(defn -main []
+(defn part-1 [])
+
+(defn part-2 []
   (let [stack (create-stack text)
         random-key "ttrgg"
         random-child (get stack random-key)]
-    (println "Weight should be"(what-to-do stack (find-lowest-problem-parent stack (root-tower stack random-child))))))
+    (println stack)
+    (println "Weight should be" (what-to-do stack (find-lowest-problem-parent stack (root-tower stack random-child))))
+    (what-to-do stack (find-lowest-problem-parent stack (root-tower stack random-child)))))

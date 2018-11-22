@@ -1,6 +1,9 @@
-(ns day9.core)
+(ns day09
+  (:require [clojure.string :as str]
+            [clojure.java.io :as io]))
 
-(def text (slurp "input.txt"))
+(def text
+  (-> "day9/input.txt" io/resource io/file slurp))
 
 (defn create-state []
   {:total-score 0
@@ -35,6 +38,9 @@
 (defn parse-input [input]
   (reduce parse-character (create-state) input))
 
-(defn -main []
+(defn part-1 []
   (let [output (parse-input text)]
-    (println (:garbage-count output))))
+    (:total-score output))) 
+(defn part-2 []
+  (let [output (parse-input text)]
+    (:garbage-count output)))

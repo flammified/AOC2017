@@ -1,9 +1,10 @@
-(ns day12.core
-  (:use [clojure.string :as str])
-  (:require [clojure.set :as set]))
+(ns day12
+  (:require [clojure.string :as str]
+            [clojure.java.io :as io]
+            [clojure.set :as set]))
 
-
-(def input (slurp "input.txt"))
+(def input
+  (-> "day12/input.txt" io/resource io/file slurp))
 
 (defn parse-line [state line]
   (let [[id connections-str] (str/split line #" <-> ")
@@ -28,12 +29,13 @@
 
 (defn amount-of-groups [graph]
   (count
-    (reduce
-      set/union
-      (set nil)
-      (map
-        #(set [(hash (set (traverse-graph-dfs graph %)))])
-        (range 0 (count graph))))))
+    (->> (range 0 (count graph))
+         (map #(set [(hash (set (traverse-graph-dfs graph %)))]))
+         (reduce set/union (set nil)))))
 
-(defn -main []
-  (println (amount-of-groups (parse-input input))))
+
+(defn part-1 []
+  (count (traverse-graph-dfs (parse-input input) 0)))
+
+(defn part-2 []
+  (amount-of-groups (parse-input input)))

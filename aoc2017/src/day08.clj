@@ -1,7 +1,10 @@
-(ns day8.core
-  (:use [clojure.string :as str]))
+(ns day08
+  (:require [clojure.string :as str]
+            [clojure.java.io :as io]))
 
-(def text (slurp "input.txt"))
+(def text
+  (-> "day8/input.txt" io/resource io/file slurp))
+
 
 (defn get-register-by-name [bank name]
   (let [name-value (get bank name)]
@@ -76,7 +79,11 @@
 (defn highest-ever-state [states]
   (reduce max (map (fn [state] (second (highest-register state))) states)))
 
-(defn -main[]
+(defn part-1 []
+  (let [states (run-program text)]
+    (apply max-key val (last states))))
+
+(defn part-2 []
   (let [states (run-program text)
         highest (highest-register (last states))]
-    (println (highest-ever-state states))))
+    (highest-ever-state states)))

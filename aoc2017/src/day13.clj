@@ -1,7 +1,11 @@
-(ns day13.core
-  (:use [clojure.string :as str]))
+(ns day13
+  (:require [clojure.string :as str]
+            [clojure.java.io :as io]
+            [clojure.set :as set]))
 
-(def text (slurp "input.txt"))
+(def text
+  (-> "day13/input.txt" io/resource io/file slurp))
+
 
 (defn parse-line [state line]
   (let [ [id-str length-str] (str/split line #": ")
@@ -19,7 +23,7 @@
     (mod cycle (- length 1))
     (- length (mod cycle (- length 1)))))
 
-(defn update [state]
+(defn increase-cycle [state]
   (update-in state [:cycle] inc))
 
 (defn calculate-current-severity [state]
@@ -34,7 +38,7 @@
 (defn calculate-severity-of-trip [state from to]
   (if (> from to)
     0
-    (+ (calculate-current-severity state) (calculate-severity-of-trip (update state) (inc from) to))))
+    (+ (calculate-current-severity state) (calculate-severity-of-trip (increase-cycle state) (inc from) to))))
 
 (defn caught? [state delay]
   (let [current-position (:cycle state)
@@ -50,7 +54,7 @@
     false
     (if (caught? state delay)
       true
-      (recur (update state) (inc from) to delay))))
+      (recur (increase-cycle state) (inc from) to delay))))
 
 (defn max-index [state]
   (apply max (keys (:firewall state))))
@@ -58,6 +62,10 @@
 (defn smallest-delay [state]
   (first (filter #(not (caught-in-trip state 0 (max-index state) %1)) (range 0 100000000))))
 
-(defn -main []
+(defn part-1 []
   (let [initial (create-initial-state text)]
-    (println (smallest-delay initial))))
+    (calculate-severity-of-trip initial 0 92)))
+
+(defn part-2 []
+  (let [initial (create-initial-state text)]
+    (smallest-delay initial)))

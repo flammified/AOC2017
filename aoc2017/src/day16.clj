@@ -1,13 +1,16 @@
-(ns day16.core
-  (:use [clojure.string :as str]))
+(ns day16
+  (:require [clojure.string :as str]
+            [clojure.java.io :as io]
+            [clojure.set :as set]))
 
-(def text (slurp "input.txt"))
+(def text
+  (-> "day16/input.txt" io/resource io/file slurp))
+
 
 (defn parse-line [state line]
   (let [first-letter (first line)
-        rest (join (rest line))]
+        rest (str/join (rest line))]
 
-    (println first-letter rest)
     (case first-letter
       \s (conj state (vec (conj [:spin] (read-string rest))))
       \x (conj state (vec (concat [:exchange] (map read-string (str/split rest #"\/")))))
@@ -41,11 +44,13 @@
 (defn seq-contains? [coll target] (some #(= target %) coll))
 
 (defn run-x-times [program input x outputs]
-  (println x)
   (if (<= x 0)
     input
     (recur program (run-program program input) (dec x) (conj outputs input))))
 
-(defn -main []
+(defn part-1 []
+  (str/join (run-program (parse-input text) (char-range \a \p))))
+
+(defn part-2 []
   (let [parsed (parse-input text)]
-    (println (join (run-x-times parsed (char-range \a \p) (mod 1000000000 60) [])))))
+    (str/join (run-x-times parsed (char-range \a \p) (mod 1000000000 60) []))))
