@@ -1,57 +1,76 @@
-(ns day10.core
-  (:use [clojure.string :as str :refer [split]]))
+(ns day10
+  (:require [clojure.string :as str]
+            [clojure.java.io :as io]
+            [clojure.pprint :refer (cl-format)]))
 
-(def text (slurp "input.txt"))
+(def input
+  (-> "day10/input.txt" io/resource io/file slurp str/trim))
 
-(defn parse-numbers [numbers]
-  (vec (map read-string (str/split numbers #","))))
+(def part-2-input "63,144,180,149,1,255,167,84,125,65,188,0,2,254,229,24")
 
-(defn split-without-wrap [list start length]
-  (let [reversed-sub (reverse (take length (drop start (cycle list))))]
-    (vec (concat (take start list) reversed-sub (drop (+ start length) list)))))
 
-(defn wraps? [list start length]
-  (>= (+ start length) (count list)))
+(def lengths (map read-string (str/split input #",")))
 
-(defn reverse-wrapping-sublist [list start length]
-  (vec (reverse (take length (drop start (cycle list))))))
+(def start (range 0 256))
 
-(defn wraps-at [wrapping-list start length max]
-  (- (count wrapping-list) (- (+ start length) max)))
+(defn pinch [list from length]
+  (let [list-length (count list)
+        list-remainder-length (- list-length from)
+        sublist-at-front (take list-length (drop from (cycle list)))
+        [sublist rest] (split-at length sublist-at-front)
+        reversed-sublist (reverse sublist)]
+     (->> (cycle (concat reversed-sublist rest))
+          (drop list-remainder-length)
+          (take list-length))))
 
-(defn middle-of-list [list front-offset back-offset]
-  (let [back-removed (drop-last back-offset list)
-        front-removed (drop front-offset back-removed)]
-    front-removed))
 
-(defn split-with-wrap [circle start length]
-  (let [reversed-sub  (reverse-wrapping-sublist circle start length)
-        sublist-split (wraps-at reversed-sub start length (count circle))
-        split-reversed (split-at sublist-split reversed-sub)
-        middle-of-list (middle-of-list circle (count (second split-reversed)) (count (first split-reversed)))]
-    (vec (concat (vec (second split-reversed)) middle-of-list (vec (first split-reversed))))))
 
-(defn reverse-sublist [list start length]
-  (if (wraps? list start length)
-    (split-with-wrap list start length)
-    (split-without-wrap list start length)))
+(defn knothash-round
+    ([numbers lengths] (knothash-round numbers lengths 0 0))
+    ([numbers lengths stepsize current-position]
+     (loop [list numbers
+            current-position current-position
+            stepsize stepsize
+            lengths lengths]
+       (let [next-length (first lengths)]
+         (if (nil? next-length)
+           [current-position stepsize list]
+           (recur
+               (pinch list current-position next-length)
+               (mod (+ current-position next-length stepsize) (count list))
+               (inc stepsize)
+               (rest lengths)))))))
 
-(defn wrap-range [new-index max-index]
-  (if (>= new-index max-index)
-    (- new-index max-index)
-    new-index))
+(def magic [17 31 73 47 23])
 
-(defn knot-list [circle lengths position skip-length]
-  (if (== (count lengths) 0)
-    circle
-    (let [length (first lengths)
-          new-index (wrap-range (+ length skip-length position) (count circle))]
-      (recur (reverse-sublist circle position length) (drop 1 lengths) new-index (inc skip-length)))))
+(defn create-sparse-hash [input amount-of-loops]
+  (let [ascii (concat (map int input) magic)]
+    (loop [iterations amount-of-loops
+           numbers (range 0 256)
+           stepsize 0
+           current-position 0]
+      (let [[new-position new-stepsize new-list] (knothash-round numbers ascii stepsize current-position)]
+        (if (<= iterations 0)
+           numbers
+           (recur (dec iterations) new-list new-stepsize new-position))))))
 
-(defn multiply-first-two [a]
-  (* (first a) (second a)))
+(defn reduce-xor [block]
+  (reduce bit-xor block))
 
-(defn -main []
-  (let [knot-lengths (parse-numbers text)
-        output (knot-list (vec (range 0 256)) knot-lengths 0 0)]
-    (println (multiply-first-two output))))
+(defn knothash [input]
+  (let [sparse-hash (create-sparse-hash input 64)
+        blocks (partition 16 sparse-hash)]
+    (->> blocks (map reduce-xor) (map #(cl-format nil "~2,'0x" %)) (str/join ""))))
+
+
+
+
+(defn part-1 []
+  (->> (knothash-round start lengths)
+       last
+       (take 2)
+       (apply *)))
+
+
+(defn part-2 []
+  (knothash part-2-input))
