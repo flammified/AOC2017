@@ -92,6 +92,4 @@
   (let [stack (create-stack text)
         random-key "ttrgg"
         random-child (get stack random-key)]
-    (println stack)
-    (println "Weight should be" (what-to-do stack (find-lowest-problem-parent stack (root-tower stack random-child))))
     (what-to-do stack (find-lowest-problem-parent stack (root-tower stack random-child)))))

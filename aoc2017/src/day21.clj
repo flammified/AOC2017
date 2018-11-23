@@ -1,29 +1,58 @@
-(ns day21_new.core
+(ns day21
   (:require [clojure.string :as str]
+            [clojure.java.io :as io]
+            [clojure.set :as set]
             [clojure.core.matrix :as matrix]))
-
-(def input (slurp "input.txt"))
-
-(def rulebook
-  (reduce
-    (fn [result line]
-      (let [[from _ to] (str/split line #" ")]
-        (assoc result from to)))
-    {}
-    (str/split-lines input)))
 
 (defn matrix-to-string [matrix]
   (str/join "/" (map #(apply str %) matrix)))
 
 (defn string-to-matrix [matrix-string]
   (map #(str/split % #"") (str/split matrix-string #"/")))
-;
+
+
+
+
+
+
 (def start-matrix
   [[\. \# \.]
    [\. \. \#]
    [\# \# \#]])
 
-; (matrix/pm start-matrix)
+
+(defn flip-matrix [m]
+  (map reverse m))
+
+(defn rotate [m n]
+  (if (<= n 0)
+    m
+    (recur (map reverse
+             (apply map vector m))
+           (dec n))))
+
+(defn possible-forms-of [m]
+  (let [matrix-vector (string-to-matrix m)]
+    (map
+      matrix-to-string
+      [matrix-vector
+       (rotate matrix-vector 1)
+       (rotate matrix-vector 2)
+       (rotate matrix-vector 3)
+       (flip-matrix matrix-vector)
+       (flip-matrix (rotate matrix-vector 1))
+       (flip-matrix (rotate matrix-vector 2))
+       (flip-matrix (rotate matrix-vector 3))])))
+
+(def input
+  (-> "day21/input.txt" io/resource io/file slurp str/trim-newline))
+
+(def rulebook
+  (->> (str/split-lines input)
+       (map #(str/split % #" "))
+       (mapcat (fn [[from _ to]] (zipmap (possible-forms-of from) (repeat to))))
+       (into {})))
+
 
 (defn split-matrix-into-parts [mat]
     (let [[width height] (matrix/shape mat)
@@ -45,38 +74,12 @@
                 (range amount-of-pieces)))
        (range amount-of-pieces))))
 
-(defn flip-matrix [m]
-  (map reverse m))
-
-(defn rotate [m n]
-  (if (<= n 0)
-    m
-    (recur (map reverse
-             (apply map vector m))
-           (dec n))))
-
-
-(defn possible-forms-of [m]
-  [m
-   (rotate m 1)
-   (rotate m 2)
-   (rotate m 3)
-   (flip-matrix m)
-   (flip-matrix (rotate m 1))
-   (flip-matrix (rotate m 2))
-   (flip-matrix (rotate m 3))])
-
-
 (def apply-rulebook
     (memoize
         (fn [rulebook m]
-          (let [possible-forms (possible-forms-of m)
-                new-matrix (some
-                             #(get rulebook (matrix-to-string %))
-                             possible-forms)]
-            (if (nil? new-matrix)
+            (if (nil? (get rulebook (matrix-to-string m)))
               m
-              (string-to-matrix new-matrix))))))
+              (string-to-matrix (get rulebook (matrix-to-string m)))))))
 
 (defn join-matrix-parts [parts]
   (reduce
@@ -97,24 +100,22 @@
 (defn iterate-matrix [iterations current-matrix rules]
   (loop [iterations iterations
          current-matrix current-matrix]
+    (println iterations)
     (if (<= iterations 0)
       current-matrix
       (recur (dec iterations) (grow current-matrix rules)))))
 
-
-(println (map matrix-to-string (possible-forms-of start-matrix)))
-
-(matrix/pm (iterate-matrix 5 start-matrix rules))
-(println "done")
-
 (defn count-on [m]
-  (println (->> m
-             flatten
-             (filter #(= "#" %))
-             count)))
+  (->> m
+    flatten
+    (filter #(= "#" %))
+    count))
 
+(defn part-1 []
+  (count-on (iterate-matrix 5 start-matrix rulebook)))
 
-(println (count-on (iterate-matrix 18 start-matrix rulebook)))
+(defn part-2 []
+  (count-on (iterate-matrix 18 start-matrix rulebook)))
 
 ; (defn -main [args]
 ;   (println (iterate-matrix 5 start-matrix)))

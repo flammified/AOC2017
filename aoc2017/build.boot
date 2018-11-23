@@ -1,6 +1,7 @@
 (set-env!
  :dependencies '[[org.clojure/clojure "1.9.0"]
-                 [org.clojure/math.combinatorics "0.1.4"]]
+                 [org.clojure/math.combinatorics "0.1.4"]
+                 [net.mikera/core.matrix "0.62.0"]]
  :resource-paths #{"resources" "src"})
 
 (task-options!
@@ -8,12 +9,16 @@
 
 (defn run-day-part
   [day part]
-  (let [day (format "day%02d" day)
-        sym (symbol day
-                    (str "part-" part))
-        _   (require (symbol day))
-        fn  (resolve sym)]
-    (println (str sym ":") (fn))))
+  (try
+    (let [day (format "day%02d" day)
+          sym (symbol day
+                      (str "part-" part))
+          _   (require (symbol day))
+          fn  (resolve sym)]
+      (if (not (nil? fn))
+        (println (str sym ":") (fn))))
+    (catch java.io.FileNotFoundException e
+      println (str (.getMessage e)))))
 
 (deftask run-day
   [d day  VAL int "day"

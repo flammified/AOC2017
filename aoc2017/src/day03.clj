@@ -1,4 +1,4 @@
-(ns day3-2.core)
+(ns day3)
 
 (def directions
   [[-1 -1]
@@ -73,5 +73,7 @@
 (defn highest-number-in-spiral-below-limit [limit]
   (spiral {} 0 [0 0] :east limit))
 
-(defn -main []
+(defn part-1 [])
+
+(defn part-2 []
   (println (highest-number-in-spiral-below-limit 312051)))
