@@ -16,7 +16,7 @@
           _   (require (symbol day))
           fn  (resolve sym)]
       (if (not (nil? fn))
-        (println (str sym ":") (fn))))
+        (println (str sym " |") (fn))))
     (catch java.io.FileNotFoundException e
       println (str (.getMessage e)))))
 
@@ -33,6 +33,9 @@
 
 (deftask run-all
   []
+  (println "---------------------------------------")
+  (println "|              AoC 2017               |")
+  (println "---------------------------------------")
   (with-pass-thru [_]
     (doseq [day (range 1 (inc 25))
             part [1 2]]

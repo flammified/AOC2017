@@ -23,8 +23,6 @@
           (drop list-remainder-length)
           (take list-length))))
 
-
-
 (defn knothash-round
     ([numbers lengths] (knothash-round numbers lengths 0 0))
     ([numbers lengths stepsize current-position]
@@ -61,6 +59,11 @@
   (let [sparse-hash (create-sparse-hash input 64)
         blocks (partition 16 sparse-hash)]
     (->> blocks (map reduce-xor) (map #(cl-format nil "~2,'0x" %)) (str/join ""))))
+
+(defn knothash-decimal [input]
+  (let [sparse-hash (create-sparse-hash input 64)
+        blocks (partition 16 sparse-hash)]
+    (->> blocks (mapv reduce-xor))))
 
 
 

@@ -10,39 +10,29 @@
 (defn string-to-matrix [matrix-string]
   (map #(str/split % #"") (str/split matrix-string #"/")))
 
-
-
-
-
-
 (def start-matrix
   [[\. \# \.]
    [\. \. \#]
    [\# \# \#]])
 
+(def transpose (partial apply map vector))
 
-(defn flip-matrix [m]
-  (map reverse m))
+(def flip (partial map reverse))
 
-(defn rotate [m n]
-  (if (<= n 0)
-    m
-    (recur (map reverse
-             (apply map vector m))
-           (dec n))))
+(def rotate-right (comp flip transpose))
 
 (defn possible-forms-of [m]
   (let [matrix-vector (string-to-matrix m)]
     (map
       matrix-to-string
       [matrix-vector
-       (rotate matrix-vector 1)
-       (rotate matrix-vector 2)
-       (rotate matrix-vector 3)
-       (flip-matrix matrix-vector)
-       (flip-matrix (rotate matrix-vector 1))
-       (flip-matrix (rotate matrix-vector 2))
-       (flip-matrix (rotate matrix-vector 3))])))
+       (nth (iterate rotate-right matrix-vector) 1)
+       (nth (iterate rotate-right matrix-vector) 2)
+       (nth (iterate rotate-right matrix-vector) 3)
+       (flip matrix-vector)
+       (flip (nth (iterate rotate-right matrix-vector) 1))
+       (flip (nth (iterate rotate-right matrix-vector) 2))
+       (flip (nth (iterate rotate-right matrix-vector) 3))])))
 
 (def input
   (-> "day21/input.txt" io/resource io/file slurp str/trim-newline))
@@ -54,25 +44,9 @@
        (into {})))
 
 
-(defn split-matrix-into-parts [mat]
-    (let [[width height] (matrix/shape mat)
-          size (cond
-                       (== (mod width 2) 0 ) 2
-                       (== (mod width 3) 0 ) 3
-                       :else 2)
-          amount-of-pieces (/ width size)]
-      (map
-          (fn [row-index]
-              (map
-                (fn [col-index]
-                  (matrix/submatrix
-                    mat
-                    (* size row-index)
-                    size
-                    (* size col-index)
-                    size))
-                (range amount-of-pieces)))
-       (range amount-of-pieces))))
+(defn split-grid [n grid]
+  (map #(map transpose (partition n (transpose %)))
+       (partition n grid)))
 
 (def apply-rulebook
     (memoize
@@ -93,7 +67,7 @@
   (memoize
     (fn [mat rules]
         (->> mat
-          split-matrix-into-parts
+          (split-grid (if (= (mod (count mat) 2) 0) 2 3))
           (map (fn [row] (map #(apply-rulebook rules %) row)))
           join-matrix-parts))))
 
