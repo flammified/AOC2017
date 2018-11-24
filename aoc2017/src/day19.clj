@@ -26,9 +26,9 @@
   (let [[iy ix] (:coord state)]
     (assoc state :direction
       (case (get-in matrix (:coord state))
-        \+ (cond
-              (contains? #{:down :up} (:direction state)) (if-not (= (get-in matrix [iy (dec ix)]) \space) :left :right)
-              (contains? #{:left :right} (:direction state)) (if-not (= (get-in matrix [(dec iy) ix]) \space) :up :down))
+        \+ (case (:direction state)
+              (:up :down) (if (#{\| \space} (get-in matrix [iy (dec ix)])) :right :left)
+              (:left :right) (if (#{\- \space} (get-in matrix [(dec iy) ix])) :down :up))
         (:direction state)))))
 
 
@@ -40,7 +40,7 @@
                         update-direction
                         move)]
 
-      (if (nil? (get-in matrix (:coord state)))
+      (if (#{\space} (get-in matrix (:coord state)))
         states
         (recur new-state (conj states state))))))
 
@@ -54,3 +54,7 @@
        (map #(get-in matrix (:coord %)))
        (filter (fn [character] (contains? letters character)))
        (str/join "")))
+
+(defn part-2 []
+  (->> (path {:coord (start-location matrix) :direction :down})
+       (count)))
