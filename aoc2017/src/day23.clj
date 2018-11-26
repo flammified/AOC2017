@@ -17,24 +17,24 @@
        (mapv #(spec/conform ::instruction (edn/read-string (format "[%s]" %))))
        (into [])))
 
-(defn value [registers [kind value]]
-  (if (= kind :register)
-    (registers value)
-    value))
 
 (defn step [{:keys [registers count index] :as state}]
   (if (contains? instructions index)
     (let [{:keys [operation arg1 arg2]} (instructions index)
           state (update state :index inc)
 
+          value (fn [[kind v]]
+                    (if (= kind :register) (registers v) v))
+
           update-register (fn [update-fn]
-                            (update-in state [:registers (second arg1)] update-fn (value registers arg2)))]
+                            (update-in state [:registers (second arg1)] update-fn (value arg2)))]
+
 
       (case operation
             set (update-register (fn [a b] b))
             sub (update-register -)
             mul (-> (update-register *) (update :count inc))
-            jnz (cond-> state (not (zero? (value registers arg1))) (assoc :index (+ index (value registers arg2))))))
+            jnz (cond-> state (not (zero? (value arg1))) (assoc :index (+ index (value arg2))))))
     (assoc state :done true)))
 
 (defn part-1 []
