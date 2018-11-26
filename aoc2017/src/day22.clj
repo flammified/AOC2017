@@ -48,4 +48,4 @@
       (cond-> (= :weakened current-node) (update :count inc)))))
 
 (defn part-2 []
-  (time (:count (last (take 10000000 (iterate burst {:count 0 :position [12 12] :direction [-1 0] :grid (input-to-grid input)}))))))
+  (:count (last (take 10000000 (iterate burst {:count 0 :position [12 12] :direction [-1 0] :grid (input-to-grid input)})))))

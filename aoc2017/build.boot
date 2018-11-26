@@ -1,7 +1,9 @@
 (set-env!
  :dependencies '[[org.clojure/clojure "1.9.0"]
                  [org.clojure/math.combinatorics "0.1.4"]
-                 [net.mikera/core.matrix "0.62.0"]]
+                 [net.mikera/core.matrix "0.62.0"]
+                 [org.clojure/math.numeric-tower "0.0.4"]]
+
  :resource-paths #{"resources" "src"})
 
 (task-options!
@@ -16,7 +18,7 @@
           _   (require (symbol day))
           fn  (resolve sym)]
       (if (not (nil? fn))
-        (println (str sym " |") (fn))))
+        (println (str sym " |") (time (fn)))))
     (catch java.io.FileNotFoundException e
       println (str (.getMessage e)))))
 

@@ -74,7 +74,6 @@
 (defn iterate-matrix [iterations current-matrix rules]
   (loop [iterations iterations
          current-matrix current-matrix]
-    (println iterations)
     (if (<= iterations 0)
       current-matrix
       (recur (dec iterations) (grow current-matrix rules)))))
