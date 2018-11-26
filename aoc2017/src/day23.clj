@@ -22,40 +22,32 @@
     (registers value)
     value))
 
-(defn update-register [registers update-fn])
-
 (defn step [{:keys [registers count index] :as state}]
-  (println registers)
-  (let [instruction (get instructions index)
-        updated-state (update state :index inc)]
-    (if (nil? instruction)
-      (assoc updated-state :done true)
-      (case (:operation instruction)
-            set (assoc-in updated-state  [:registers (second (:arg1 instruction))] (value registers (:arg2 instruction)))
-            sub (update-in updated-state  [:registers (second (:arg1 instruction))] #(- % (value registers (:arg2 instruction))))
-            mul (-> updated-state
-                    (update :count inc)
-                    (update-in [:registers (second (:arg1 instruction))] #(* % (value registers (:arg2 instruction)))))
-            jnz (cond-> updated-state (not (zero? (value registers (:arg1 instruction)))) (assoc :index (+ index (value registers (:arg2 instruction)))))))))
+  (if (contains? instructions index)
+    (let [{:keys [op arg1 arg2]} (instructions index)
+          state (update state :index inc)
 
+          update-register (fn [update-fn]
+                            (update-in state [:registers (second arg1)] update-fn) (value arg2))]
 
-;
-; (defn value [bank arg]
-;   (if (#{\a \b \c \d \e \f \g} arg)
-;     (get bank arg)
-;     arg))
-;
-; (defn run-line [[op & args] bank]
-;   (println (type op))
-;   (case op
-;     "set" (assoc (args 0) (value (args 1)))))
+        (case op
+              set (update-register #(%2))
+              sub (update-register -)
+              mul (-> state (update :count inc) (update-register *))
+              jnz (cond-> state (not (zero? (value registers arg1))) (assoc :index (+ index (value registers arg2))))))
+    (assoc state :done true)))
 
 (defn part-1 []
   (let [registers (into {} (zipmap ['a 'b 'c 'd 'e 'f 'g 'h] (repeat 0)))]
-    (last (take-while #(not (:done %)) (iterate step {:registers registers :count 0 :index 0 :done false})))))
-;
+    (->> (take-while #(not (:done %)) (iterate step {:registers registers :count 0 :index 0 :done false}))
+         last
+         :count)))
+
+(defn prime? [num]
+  (let [p (fn [x] (== (mod num x) 0))]
+      (not (some p (range 2 num)))))
+
 (defn part-2 []
-  (let [registers (-> (into {} (zipmap ['a 'b 'c 'd 'e 'f 'g 'h] (repeat 0)))
-                      (assoc 'a 1))]
-    (last (take-while #(not (:done %)) (iterate step {:registers registers :count 0 :index 0 :done false})))))
-;
+  (->> (range 105700 (+ 122700 1), 17)
+      (filter #(not (prime? %)))
+      count))
