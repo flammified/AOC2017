@@ -24,17 +24,17 @@
 
 (defn step [{:keys [registers count index] :as state}]
   (if (contains? instructions index)
-    (let [{:keys [op arg1 arg2]} (instructions index)
+    (let [{:keys [operation arg1 arg2]} (instructions index)
           state (update state :index inc)
 
           update-register (fn [update-fn]
-                            (update-in state [:registers (second arg1)] update-fn) (value arg2))]
+                            (update-in state [:registers (second arg1)] update-fn (value registers arg2)))]
 
-        (case op
-              set (update-register #(%2))
-              sub (update-register -)
-              mul (-> state (update :count inc) (update-register *))
-              jnz (cond-> state (not (zero? (value registers arg1))) (assoc :index (+ index (value registers arg2))))))
+      (case operation
+            set (update-register (fn [a b] b))
+            sub (update-register -)
+            mul (-> (update-register *) (update :count inc))
+            jnz (cond-> state (not (zero? (value registers arg1))) (assoc :index (+ index (value registers arg2))))))
     (assoc state :done true)))
 
 (defn part-1 []
