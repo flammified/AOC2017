@@ -1,7 +1,4 @@
-# My solutions for the Advent of Code of 2017.
+# Advent of Code
 
-Ill probably be using:
-
-* Rust, because it looks interesting and I want to learn it somehow.
-* Clojure, because Lisp <3
-* or Python when I want to do it quickly
+This repository hosts my solutions for the Advent of Code from 2017 onwards. 2017 was done almost completely in Clojure.
+2018 will be done with a mixture of Golang and Clojure.
