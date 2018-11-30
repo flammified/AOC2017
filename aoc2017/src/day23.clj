@@ -48,6 +48,6 @@
       (not (some p (range 2 num)))))
 
 (defn part-2 []
-  (->> (range 105700 (+ 122700 1), 17)
+  (->> (range 105700 (+ 122700 1) 17)
       (filter #(not (prime? %)))
       count))
