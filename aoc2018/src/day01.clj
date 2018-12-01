@@ -13,14 +13,14 @@
 
 (defn part-1 []
   (reduce + input))
+
 (defn part-2 []
   (reduce
       (fn [{:keys [last-frequency] :as cur} delta]
         (let [new-frequency (+ last-frequency delta)]
-          (if (some? (get cur new-frequency))
+          (if (get cur new-frequency)
             (reduced new-frequency)
-            (-> cur
-              (assoc :last-frequency new-frequency)
-              (assoc new-frequency :seen)))))
+            (assoc cur :last-frequency new-frequency
+                        new-frequency :seen))))
     {:last-frequency 0 0 :seen}
     (cycle input)))
