@@ -19,8 +19,8 @@
       (fn [{:keys [last-frequency] :as cur} delta]
         (let [new-frequency (+ last-frequency delta)]
           (if (get cur new-frequency)
-            (reduced new-frequency)
-            (assoc cur :last-frequency new-frequency
-                        new-frequency :seen))))
+              (reduced new-frequency)
+              (assoc cur :last-frequency new-frequency
+                          new-frequency :seen))))
     {:last-frequency 0 0 :seen}
     (cycle input)))
