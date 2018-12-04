@@ -54,13 +54,15 @@
     [max-minute guard]))
 
 (defn strategy-2 [logs]
-  (let [current-state (accumulate-logs (sort-by (juxt :year :month :day :hour :minute) input))]
+  (let [current-state (accumulate-logs (sort-by (juxt :year :month :day :hour :minute) input))
+        highest-minute (fn [guard-info] (->> guard-info :minutes (sort-by val >) first))
+        occurance  (fn [[guard [minute occurances]]] occurances)]
     (->> current-state
          :guards
          seq
-         (map (fn [[guard info]] [guard (->> info :minutes (sort-by val >) first)]))
-         (filter #(some? (second (second %))))
-         (sort-by #(second (second %)) >)
+         (map (fn [[guard info]] [guard (highest-minute info)]))
+         (filter #(some? (occurance %)))
+         (sort-by #(occurance %) >)
          first)))
 
 (defn part-1 []
