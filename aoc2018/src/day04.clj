@@ -58,13 +58,14 @@
     (->> current-state
          :guards
          seq
-         (map (fn [[guard info]] [guard (->> info :minutes (sort-by val >) ffirst)]))
-         (filter #(some? (second %)))
-         (sort-by second >)
+         (map (fn [[guard info]] [guard (->> info :minutes (sort-by val >) first)]))
+         (filter #(some? (second (second %))))
+         (sort-by #(second (second %)) >)
          first)))
 
 (defn part-1 []
   (apply * (strategy-1 (sort-by (juxt :year :month :day :hour :minute) input))))
 
 (defn part-2 []
-  (strategy-2 (sort-by (juxt :year :month :day :hour :minute) input)))
+  (let [[guard [minute amount]] (strategy-2 (sort-by (juxt :year :month :day :hour :minute) input))]
+    (* guard minute)))
