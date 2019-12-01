@@ -11,8 +11,19 @@
         (str/split-lines)
         (map edn/read-string))))
 
+
+(defn calculate-fuel [a]
+  (-> a (/ 3) (int) (- 2)))
+
+(defn fuel-2 [a]
+  (->> a
+       (iterate calculate-fuel)
+       (drop 1)
+       (take-while pos?)
+       (reduce +)))
+
 (defn part-1 []
-  (comment "Part 1 goes here"))
+  (reduce + (map calculate-fuel input)))
 
 (defn part-2 []
-  (comment "Part 2 goes here"))
+  (reduce + (map fuel-2 input)))

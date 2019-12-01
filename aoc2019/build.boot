@@ -7,7 +7,24 @@
  :resource-paths #{"resources" "src"})
 
 (task-options!
- repl {:eval '(set! *print-length* 20)})
+ repl {:eval '(set! *print-length* 20)})  (println "Dev profile running")
+
+(deftask dev
+  "Profile setup for development.
+  	Starting the repl with the dev profile...
+  	boot dev repl "
+  []
+  (set-env!
+   :init-ns 'user
+   :source-paths #(into % ["src"])
+   :dependencies #(into % '[[org.clojure/tools.namespace "0.2.11"] [proto-repl "0.3.1"]]))
+
+  ;; Makes clojure.tools.namespace.repl work per https://github.com/boot-clj/boot/wiki/Repl-reloading
+  (require 'clojure.tools.namespace.repl)
+  (eval '(apply clojure.tools.namespace.repl/set-refresh-dirs
+                (get-env :directories)))
+
+  identity)
 
 (defn run-day-part
   [day part]
