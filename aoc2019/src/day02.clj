@@ -27,21 +27,21 @@
         (run-op)
         (assoc :position (+ position 4)))))
 
-(defn set-position [program position value]
-  (assoc program position value))
-
-(defn run-part-1 [program noun verb]
+(defn run [program noun verb]
   (try
-    (let [program (-> program (set-position 1 noun) (set-position 2 verb))
-          initial-state {:halted false :position 0 :program program}]
-      (get-in (last (take-while #(not (:halted %))) (iterate run-program initial-state))))
+    (-> program
+        (assoc 1 noun)
+        (assoc 2 verb)
+        ((fn [program] (->> (iterate run-program {:halted false :position 0 :program program})
+                            (take-while (fn [state] (not (:halted state))))
+                            (last)
+                            ((fn [state] (get-in state [:program 0])))))))
     (catch Exception e
       (str ""))))
 
 
-
 (defn part-1 []
-  (run-program-1 input 12 2))
+  (run input 12 2))
 
 (defn part-2 []
   (doseq [noun (range 352)
