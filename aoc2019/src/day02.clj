@@ -46,8 +46,5 @@
 (defn part-2 []
   (doseq [noun (range 352)
           verb (range 352)]
-      (try
         (if (= 19690720 (run-part-1 input noun verb))
-          (println noun verb))
-        (catch Exception e
-          (str "")))))
+          (println noun verb))))
