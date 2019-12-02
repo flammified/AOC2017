@@ -18,7 +18,7 @@
       99 (assoc state :halted true)
       1 (assoc-in state [:program target] (+ i j))
       2 (assoc-in state [:program target] (* i j))
-      :default (assoc state :halted true :error true))))
+      (assoc state :halted true :error true))))
 
 (defn run-program [{:keys [position program halted] :as state}]
   (if halted
@@ -34,7 +34,7 @@
   (try
     (let [program (-> program (set-position 1 noun) (set-position 2 verb))
           initial-state {:halted false :position 0 :program program}]
-      (get-in (last (take-while (fn [state] (not (:halted state))) (iterate run-program initial-state))) [:program 0]))
+      (get-in (last (take-while #(not (:halted %))) (iterate run-program initial-state))))
     (catch Exception e
       (str ""))))
 
