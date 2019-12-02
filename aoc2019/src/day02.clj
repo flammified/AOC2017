@@ -10,9 +10,10 @@
       (str/split #",")
       (->> (map edn/read-string) (into []))))
 
-(defn run-op [state [op noun verb target]]
-  (let [i (get-in state [:program noun])
-        j (get-in state [:program verb])];j])]
+(defn run-op [{:keys [program position] :as state}]
+  (let [[op i j target] (subvec program position (+ position 4))
+        i (get-in state [:program i])
+        j (get-in state [:program j])];j])]
     (case op
       99 (assoc state :halted true)
       1 (assoc-in state [:program target] (+ i j))
@@ -22,10 +23,9 @@
 (defn run-program [{:keys [position program halted] :as state}]
   (if halted
     state
-    (let [[op i j target] (subvec program position (+ position 4))
-          new-state (run-op state [op i j target])]
-      (-> new-state
-          (assoc :position (+ position 4))))))
+    (-> state
+        (run-op)
+        (assoc :position (+ position 4)))))
 
 (defn set-position [program position value]
   (assoc program position value))
@@ -45,13 +45,9 @@
 
 (defn part-2 []
   (doseq [noun (range 352)
-           verb (range 352)]
+          verb (range 352)]
       (try
         (if (= 19690720 (run-part-1 input noun verb))
           (println noun verb))
         (catch Exception e
           (str "")))))
-
-
-
-(part-2)
