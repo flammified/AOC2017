@@ -13,7 +13,7 @@
 (defn run-op [{:keys [program position] :as state}]
   (let [[op i j target] (subvec program position (+ position 4))
         i (get-in state [:program i])
-        j (get-in state [:program j])];j])]
+        j (get-in state [:program j])]
     (case op
       99 (assoc state :halted true)
       1 (assoc-in state [:program target] (+ i j))
@@ -44,7 +44,9 @@
   (run input 12 2))
 
 (defn part-2 []
-  (doseq [noun (range 352)
+  (filter some?
+    (for [noun (range 352)
           verb (range 352)]
-        (if (= 19690720 (run-part-1 input noun verb))
-          (println noun verb))))
+        (if (= 19690720 (run input noun verb))
+          (+ verb (* 100 noun))
+          nil))))
