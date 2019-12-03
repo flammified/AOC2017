@@ -53,7 +53,7 @@
 (deftask run-all
   []
   (println "---------------------------------------")
-  (println "|              AoC 2018               |")
+  (println "|              AoC 2019               |")
   (println "---------------------------------------")
   (with-pass-thru [_]
     (doseq [day (range 1 (inc 25))

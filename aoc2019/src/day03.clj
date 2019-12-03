@@ -6,9 +6,9 @@
             [clojure.math.numeric-tower :as math]))
 
 
-(defn parse-delta [line]
-  (let [dir (str (first line))
-        length (edn/read-string (apply str (rest line)))]
+(defn parse-delta [[dir & length]]
+  (let [dir (str dir)
+        length (edn/read-string (apply str length))]
     {:direction dir :length length}))
 
 (defn apply-direction [[x y] dir length]
