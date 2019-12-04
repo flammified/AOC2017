@@ -23,7 +23,6 @@
 (defn contains-groups-of-at-least-two? [n]
   (<= 1 (count (filter #(<= 2 %) (vals (frequencies (str n)))))))
 
-
 (defn correct-1? [s]
   (and (all-ascending? s)
        (contains-groups-of-at-least-two? s)))
