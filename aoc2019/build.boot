@@ -3,6 +3,10 @@
                  [org.clojure/math.combinatorics "0.1.4"]
                  [net.mikera/core.matrix "0.62.0"]
                  [org.clojure/math.numeric-tower "0.0.4"]
+                 [org.clojure/core.async "0.6.532"]
+
+
+                 ;; Visualization stuff
                  [quil/quil "2.2.4"]
                  [gil "1.0.0-SNAPSHOT"]]
 
