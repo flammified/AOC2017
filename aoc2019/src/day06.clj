@@ -18,13 +18,5 @@
 (defn part-1 []
   (reduce + (map first (-> (dijkstra-traverse input "COM") last second vals))))
 
-(defn solve-part-2 [input]
-  (- (second (dijkstra-path-dist input "SAN" "YOU")) 2))
-
-(defn part-1 []
-  (solve-part-1 input))
-
 (defn part-2 []
-  (solve-part-2 input))
-
-(println (part-2))
+  (- (second (dijkstra-path-dist input "SAN" "YOU")) 2))
