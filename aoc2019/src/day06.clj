@@ -1,10 +1,6 @@
 (ns day06
   (:require [clojure.string :as str]
-            [clojure.java.io :as io]
-            [clojure.spec.alpha :as spec]
-            [clojure.edn :as edn]
-            [clojure.set :as s]
-            [clojure.data.priority-map :refer [priority-map]])
+            [clojure.java.io :as io])
 
   (:use [loom.graph]
         [loom.alg]))
