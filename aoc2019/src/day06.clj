@@ -13,10 +13,10 @@
   (-> "day06/input.txt"
       io/resource io/file slurp str/trim
       (str/split-lines)
-      (->> (map #(str/split % #"\)")) (map #(concat %[1])) (apply weighted-graph))))
+      (->> (map #(str/split % #"\)")) (map #(concat %[1])) (apply weighted-graph))
 
-(defn solve-part-1 [input]
-  (reduce + (map (comp second (partial dijkstra-path-dist input "COM")) (nodes input))))
+      (defn part-1 []
+        (reduce + (map first (-> (dijkstra-traverse input "COM") last second vals))))))
 
 (defn solve-part-2 [input]
   (- (second (dijkstra-path-dist input "SAN" "YOU")) 2))
