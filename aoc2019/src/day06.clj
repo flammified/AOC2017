@@ -32,13 +32,13 @@
       (str/split-lines)
       (->> (map #(str/split % #"\)" )) (mapv #(map str %)))))
 
-(defn bfs [left right stack planet]
-  (if (some? (get right planet))
-    (reduce + (count stack) (map (partial walk left right (conj stack planet)) (get right planet)))
+(defn bfs [parents children stack planet]
+  (if (some? (get children planet))
+    (reduce + (count stack) (map (partial bfs parents children (conj stack planet)) (get children planet)))
     (count stack)))
 
-(defn adjacency-map [left right planet]
-  (zipmap (concat (get right planet) (get left planet)) (repeat 1)))
+(defn adjacency-map [parents children planet]
+  (zipmap (concat (get children planet) (get parents planet)) (repeat 1)))
 
 ;; Taken from https://gist.github.com/myfreeweb/1175566
 
@@ -63,8 +63,7 @@
 (defn solve-part-1 [input]
   (let [children (children input)
         parents (parents input)]
-    (let [all-planets (planets children)]
-      (bfs parents children [] "COM"))))
+      (bfs parents children [] "COM")))
 
 (defn solve-part-2 [input]
   (let [children (children input)
