@@ -40,6 +40,8 @@
 (defn adjacency-map [left right planet]
   (zipmap (concat (get right planet) (get left planet)) (repeat 1)))
 
+;; Taken from https://gist.github.com/myfreeweb/1175566
+
 (defn map-vals [m f]
   (into {} (for [[k v] m] [k (f v)])))
 
