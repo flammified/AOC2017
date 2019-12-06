@@ -4,6 +4,7 @@
                  [net.mikera/core.matrix "0.62.0"]
                  [org.clojure/math.numeric-tower "0.0.4"]
                  [org.clojure/core.async "0.6.532"]
+                 [aysylu/loom "1.0.2"]
 
 
                  ;; Visualization stuff
