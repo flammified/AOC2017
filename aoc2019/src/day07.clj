@@ -1,15 +1,17 @@
-(ns day06
+(ns day07
   (:require [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.spec.alpha :as spec]
             [clojure.edn :as edn]
-            [clojure.core.async :as async :refer [close! >!! chan <!! go-loop go]]))
+            [clojure.core.async :refer [>!! <!! chan go-loop close!]]))
 
 (def input
   (-> "day07/input.txt"
       io/resource io/file slurp str/trim
       (str/split #",")
       (->> (map edn/read-string) (into []))))
+
+(defn arity [op] ({1 4 2 4 3 2 4 2 5 3 6 3 7 4 8 4 99 0} op))
 
 (defn get-value [program i mode]
   (case mode
@@ -18,80 +20,85 @@
 
 (defn split-op [op]
   (let [digits (->> op
+
                     (iterate #(quot % 10))
                     (take-while pos?)
                     (mapv #(mod % 10))
                     rseq)
-
         l (map str digits)]
 
-    [(edn/read-string (clojure.string/replace (apply str (take-last 2 l)) #"^0+" "")) (drop 2 (reverse l))]))
+    [(edn/read-string (clojure.string/replace (apply str (take-last 2 l)) #"^0+" "")) (map str (drop 2 (reverse l)))]))
 
-(defn run-1 [{:keys [program position] :as state} op [f s t]]
-  (let [[op i j target] (subvec program position (min (count program) (+ position 4)))
-        i (get-value program i (case f "1" :immediate :position))
-        j (get-value program j (case s "1" :immediate :position))]
-    (-> state (assoc-in [:program target] (+ i j)) (assoc-in [:position] (+ position 4)))))
+(defn mode-from-string [m]
+  (case m
+      "1" :immediate
+      "0" :position
+      :position))
 
-(defn run-2 [{:keys [program position] :as state} op [f s t]]
-  (let [[op i j target] (subvec program position (min (count program) (+ position 4)))
-        i (get-value program i (case f "1" :immediate :position))
-        j (get-value program j (case s "1" :immediate :position))]
-    (-> state (assoc-in [:program target] (* i j)) (assoc-in [:position] (+ position 4)))))
+(defmulti run-instruction :opcode)
 
-(defn run-5 [{:keys [program position] :as state} op [f s t]]
-  (let [[op i j target] (subvec program position (min (count program) (+ position 4)))
-        i (get-value program i (case f "1" :immediate :position))
-        j (get-value program j (case s "1" :immediate :position))]
-    (if (not (zero? i)) (assoc state :position j) (assoc state :position (+ position 3)))))
+(defmethod run-instruction 1 [{[i j target] :arguments} {:keys [program position] :as state}]
+  (-> state (assoc-in [:position] (+ position 4))
+            (assoc-in [:program target] (+ i j))))
 
-(defn run-6 [{:keys [program position] :as state} op [f s t]]
-  (let [[op i j target] (subvec program position (min (count program) (+ position 4)))
-        i (get-value program i (case f "1" :immediate :position))
-        j (get-value program j (case s "1" :immediate :position))]
-    (if (zero? i) (assoc state :position j) (assoc state :position (+ position 3)))))
+(defmethod run-instruction 2 [{[i j target] :arguments} {:keys [program position] :as state}]
+  (-> state (assoc-in [:program target] (* i j))
+            (assoc-in [:position] (+ position 4))))
 
-(defn run-7 [{:keys [program position] :as state} op [f s t]]
-  (let [[op i j target] (subvec program position (min (count program) (+ position 4)))
-        i (get-value program i (case f "1" :immediate :position))
-        j (get-value program j (case s "1" :immediate :position))]
-    (-> state (assoc-in [:program target] (if (< i j) 1 0)) (assoc-in [:position] (+ position 4)))))
+(defmethod run-instruction 3 [{[i j] :arguments} {:keys [program position input] :as state}]
+  (-> state (assoc-in [:program i] (<!! input))
+            (assoc-in [:position] (+ position 2))))
 
-(defn run-8 [{:keys [program position] :as state} op [f s t]]
-  (let [[op i j target] (subvec program position (min (count program) (+ position 4)))
-          i (get-value program i (case f "1" :immediate :position))
-          j (get-value program j (case s "1" :immediate :position))]
-      (-> state (assoc-in [:program target] (if (= i j) 1 0)) (assoc-in [:position] (+ position 4)))))
+(defmethod run-instruction 4 [{[i] :arguments} {:keys [program position output] :as state}]
+  (do
+    (>!! output i)
+    (-> state (assoc-in [:position] (+ position 2)))))
 
-(defn run-3 [{:keys [id program position input] :as state} op [f s t]]
-  (let [[op i j target] (subvec program position (min (count program) (+ position 4)))
-        i-a (get-value program i (case f "1" :immediate :position))
-        j (get-value program j (case s "1" :immediate :position))
-        in (<!! input)]
-    (-> state (assoc-in [:program i] in)
-              (assoc-in [:position] (+ position 2)))))
+(defmethod run-instruction 5 [{[i j] :arguments} {:keys [program position] :as state}]
+  (if (not (zero? i))
+      (assoc state :position j)
+      (assoc state :position (+ position 3))))
 
-(defn run-4 [{:keys [program position output] :as state} op [f s t]]
-  (let [[op i j target] (subvec program position (min (count program) (+ position 4)))
-        i-a (get-value program i (case f "1" :immediate :position))
-        j (get-value program j (case s "1" :immediate :position))]
+(defmethod run-instruction 6 [{[i j] :arguments} {:keys [program position] :as state}]
+  (if (zero? i)
+      (assoc state :position j)
+      (assoc state :position (+ position 3))))
+
+(defmethod run-instruction 7 [{[i j target] :arguments} {:keys [program position] :as state}]
+  (-> state
+      (assoc-in [:program target] (if (< i j) 1 0))
+      (assoc-in [:position] (+ position 4))))
+
+(defmethod run-instruction 8 [{[i j target] :arguments} {:keys [program position] :as state}]
+  (-> state
+      (assoc-in [:program target] (if (= i j) 1 0))
+
+      (assoc-in [:position] (+ position 4))))
+
+(defmethod run-instruction 99 [{:keys [program position] :as state}]
+  (-> state
+      (assoc-in [:halted] true)))
+
+(defn last-can-be-positional? [op]
+  ({1 false 2 false 3 false 4 true 5 true 6 true 7 false 8 false 99 true} op))
+
+
+(defn get-arguments [program position op]
+  (subvec program position (+ position (arity op))))
+
+
+(defn run-program [{:keys [program position output] :as state}]
+  (if (not (= (get program position) 99))
+    (let [[op params] (split-op (get program position))
+          arguments (->> (mapv vector (rest (get-arguments program position op)) (map mode-from-string (concat params (repeat nil))))
+                         (#(cond
+                            (last-can-be-positional? op) %
+                             :else (assoc-in % [(dec (count %)) 1] :immediate)))
+                         (mapv #(apply (partial get-value program) %)))]
+      (run-instruction {:opcode op :arguments arguments} state))
     (do
-      (>!! output i-a)
-      (-> state (assoc-in [:position] (+ position 2))))))
-
-(defn run-program [{:keys [id program position output] :as state}]
-  (let [[op params] (split-op (get program position))]
-    (case op
-         99 (do (close! output)(assoc state :halted true))
-         1 (run-1 state op params)
-         2 (run-2 state op params)
-         3 (run-3 state op params)
-         4 (run-4 state op params)
-         5 (run-5 state op params)
-         6 (run-6 state op params)
-         7 (run-7 state op params)
-         8 (run-8 state op params)
-         (do (close! output) (assoc state :halted true :error true)))))
+      (close! output)
+      (assoc state :halted true))))
 
 (defn run-sync [program in-channel out-channel]
   (-> program
@@ -106,11 +113,11 @@
     [in-chan out-chan]))
 
 (defn run-independently [program a b c d e]
-  (let [amplifiers {:a (run-amplifier :a program)
-                    :b (run-amplifier :b program)
-                    :c (run-amplifier :c program)
-                    :d (run-amplifier :d program)
-                    :e (run-amplifier :e program)}]
+  (let [amplifiers {:a (run-async :a program)
+                    :b (run-async :b program)
+                    :c (run-async :c program)
+                    :d (run-async :d program)
+                    :e (run-async :e program)}]
 
     (>!! (-> amplifiers :a first) a)
     (>!! (-> amplifiers :b first) b)
@@ -120,7 +127,8 @@
 
     (try
       (loop [previous 0
-             next (cycle [:b :c :d :e :a])]
+             next (cycle [:a :b :c :d :e])]
+
         (let [[in out] (get amplifiers (first next))]
           (do
             (>!! in previous)
@@ -148,6 +156,3 @@
                              (let [t (str a b c d e)]
                                (if (= (count (set t)) (count t))
                                  (run-independently input a b c d e)))))))
-
-(println (part-1))
-(println (part-2))
