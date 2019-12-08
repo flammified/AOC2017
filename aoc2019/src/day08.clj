@@ -12,19 +12,16 @@
       (->> (map edn/read-string) (partition (* 25 6)))))
 
 (defn part-1 []
-  (let [layer (apply min-key #(count (filter #{0} %)) input)]
+  (let [layer (apply min-key #(count ((partial filter #{0}) %)) input)]
     (* (count (filter #{1} layer)) (count (filter #{2} layer)))))
 
 (defn part-2 []
   (->> input
       (apply map vector)
-      (map (fn [line] (drop-while #(= 2 %) line)))
+      (map (fn [line] (drop-while (partial = 2) line)))
       (map first)
       (partition 25)
-      (map #(apply str %))
+      (map (partial apply str))
       (map #(str/replace % #"0" " "))
       (map #(str/replace % #"1" "█"))
       (str/join "\n")))
-
-
-(println (part-1))
