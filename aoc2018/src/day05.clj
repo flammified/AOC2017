@@ -2,12 +2,7 @@
   (:require [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.spec.alpha :as spec]
-            [clojure.edn :as edn]
-            [taoensso.tufte :as tufte :refer (defnp p profiled profile)]))
-
-;; We'll request to send `profile` stats to `println`:
-(tufte/add-basic-println-handler! {})
-
+            [clojure.edn :as edn]))
 
 (def input
   (-> "day05/input.txt"
