@@ -31,7 +31,6 @@
     (if (= (count points-with-smallest-distance) 1) (ffirst points-with-smallest-distance) nil)))
 
 (defn all-points [[max-x max-y]]
-  (println max-x max-y)
   (for [y (range 0 max-y)
         x (range 0 max-x)]
     [x y]))
@@ -59,10 +58,4 @@
   (biggest-finite-area input))
 
 (defn part-2 []
-  (reduce
-    (fn [count point]
-      (if (< (reduce + (map (partial manhattan point) input)) 10000)
-        (inc count)
-        count))
-    0
-    (all-points [500 500])))
+  (count (filter (fn [p] (< (reduce + (map (partial manhattan p) input)) 10000)) (all-points [500 500]))))
