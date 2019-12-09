@@ -1,4 +1,4 @@
-(ns day03
+(ns day04
   (:require [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.spec.alpha :as spec]
@@ -32,9 +32,6 @@
        (contains-groups-of-two? s)))
 
 (defn part-1 []
-  (println (count (filter correct-1? (range start end)))))
+  (count (filter correct-1? (range start end))))
 (defn part-2 []
-  (println (count (filter correct-2? (range start end)))))
-
-(part-1)
-(part-2)
+  (count (filter correct-2? (range start end))))

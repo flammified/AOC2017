@@ -93,7 +93,7 @@
       (assoc-in [:position] (+ position 2))))
 
 (defn last-can-be-positional? [op]
-  ({1 false 2 false 3 false 4 true 5 true 6 true 7 false 8 false 9 false 99 true} op))
+  ({1 false 2 false 3 false 4 true 5 true 6 true 7 false 8 false 9 true 99 true} op))
 
 (defn get-arguments [state position op]
   (reduce
@@ -106,12 +106,12 @@
     (let [[op params] (split-op (get program position))
           arguments (->> (mapv vector (rest (get-arguments state position op)) (map mode-from-string (concat params (repeat nil))))
                          (#(cond
-                            (last-can-be-positional? op ) %
+                            (last-can-be-positional? op) %
                             :else
                                (let [mode (get-in % [(dec (count %)) 1])]
                                  (case mode
                                    :position (assoc-in % [(dec (count %)) 1] :immediate)
-                                   :relative (update % (dec (count %)) (fn [[val b]] [(get-value program state val :relative) :immediate]))
+                                   :relative (update % (dec (count %)) (fn [[val b]] [(+ relative val) :immediate]))
                                    %))))
                          (mapv #(apply (partial get-value program state) %)))]
       (run-instruction {:opcode op :arguments arguments} state))
