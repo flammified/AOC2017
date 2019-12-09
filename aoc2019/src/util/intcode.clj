@@ -3,12 +3,20 @@
             [clojure.edn :as edn]))
 
 
-(defn arity [op] ({1 4 2 4 3 2 4 2 5 3 6 3 7 4 8 4 99 0} op))
+(defn arity [op] ({1 4 2 4 3 2 4 2 5 3 6 3 7 4 8 4 9 2 99 0} op))
 
-(defn get-value [program i mode]
+(defn get-memory [state i]
+  (if (>= i (count (:program state)))
+    (let [v (get-in state [:extra i])]
+      (if (nil? v) 0 v))
+    (get-in state [:program i])))
+
+
+(defn get-value [program state i mode]
   (case mode
+    :relative (get-memory state (+ i (:relative state)))
     :immediate i
-    :position (if (< i (count program)) (get-in program [i]) nil)))
+    :position (get-memory state i)))
 
 (defn split-op [op]
   (let [digits (->> op
@@ -23,23 +31,31 @@
 
 (defn mode-from-string [m]
   (case m
+      "2" :relative
       "1" :immediate
       "0" :position
       :position))
+
+(defn set-memory [state i v]
+  ; (println "SM" i v)
+  (if (> i (count (:program state)))
+    (assoc-in state [:extra i] v)
+    (assoc-in state [:program i] v)))
 
 (defmulti run-instruction :opcode)
 
 (defmethod run-instruction 1 [{[i j target] :arguments} {:keys [program position] :as state}]
   (-> state (assoc-in [:position] (+ position 4))
-            (assoc-in [:program target] (+ i j))))
+            (set-memory target (+ i j))))
 
 (defmethod run-instruction 2 [{[i j target] :arguments} {:keys [program position] :as state}]
-  (-> state (assoc-in [:program target] (* i j))
+  (-> state (set-memory target (* i j))
             (assoc-in [:position] (+ position 4))))
 
-(defmethod run-instruction 3 [{[i j] :arguments} {:keys [program position input] :as state}]
-  (-> state (assoc-in [:program i] (<!! input))
-            (assoc-in [:position] (+ position 2))))
+(defmethod run-instruction 3 [{[i] :arguments} {:keys [program position input] :as state}]
+  (let [inp (<!! input)]
+    (-> state (set-memory i inp)
+              (assoc-in [:position] (+ position 2)))))
 
 (defmethod run-instruction 4 [{[i] :arguments} {:keys [program position output] :as state}]
   (do
@@ -58,12 +74,12 @@
 
 (defmethod run-instruction 7 [{[i j target] :arguments} {:keys [program position] :as state}]
   (-> state
-      (assoc-in [:program target] (if (< i j) 1 0))
+      (set-memory target (if (< i j) 1 0))
       (assoc-in [:position] (+ position 4))))
 
 (defmethod run-instruction 8 [{[i j target] :arguments} {:keys [program position] :as state}]
   (-> state
-      (assoc-in [:program target] (if (= i j) 1 0))
+      (set-memory target (if (= i j) 1 0))
 
       (assoc-in [:position] (+ position 4))))
 
@@ -71,22 +87,33 @@
   (-> state
       (assoc-in [:halted] true)))
 
+(defmethod run-instruction 9 [{[i] :arguments} {:keys [program position relative] :as state}]
+  (-> state
+      (assoc-in [:relative] (+ i relative))
+      (assoc-in [:position] (+ position 2))))
+
 (defn last-can-be-positional? [op]
-  ({1 false 2 false 3 false 4 true 5 true 6 true 7 false 8 false 99 true} op))
+  ({1 false 2 false 3 false 4 true 5 true 6 true 7 false 8 false 9 false 99 true} op))
 
+(defn get-arguments [state position op]
+  (reduce
+    #(conj %1 (get-memory state (+ position %2)))
+    []
+    (range (arity op))))
 
-(defn get-arguments [program position op]
-  (subvec program position (+ position (arity op))))
-
-
-(defn run-program [{:keys [program position output] :as state}]
-  (if (not (= (get program position) 99))
+(defn run-program [{:keys [program position output relative extra] :as state}]
+  (if (not (= (get-memory state position) 99))
     (let [[op params] (split-op (get program position))
-          arguments (->> (mapv vector (rest (get-arguments program position op)) (map mode-from-string (concat params (repeat nil))))
+          arguments (->> (mapv vector (rest (get-arguments state position op)) (map mode-from-string (concat params (repeat nil))))
                          (#(cond
-                            (last-can-be-positional? op) %
-                             :else (assoc-in % [(dec (count %)) 1] :immediate)))
-                         (mapv #(apply (partial get-value program) %)))]
+                            (last-can-be-positional? op ) %
+                            :else
+                               (let [mode (get-in % [(dec (count %)) 1])]
+                                 (case mode
+                                   :position (assoc-in % [(dec (count %)) 1] :immediate)
+                                   :relative (update % (dec (count %)) (fn [[val b]] [(get-value program state val :relative) :immediate]))
+                                   %))))
+                         (mapv #(apply (partial get-value program state) %)))]
       (run-instruction {:opcode op :arguments arguments} state))
     (do
       (close! output)
@@ -94,7 +121,7 @@
 
 (defn run-sync [program in-channel out-channel]
   (-> program
-      ((fn [program] (->> (iterate run-program {:halted false :position 0 :program program :input in-channel :output out-channel})
+      ((fn [program] (->> (iterate run-program {:halted false :relative 0 :position 0 :program program :extra {} :input in-channel :output out-channel})
                           (take-while (fn [state] (not (:halted state))))
                           (last))))))
 
