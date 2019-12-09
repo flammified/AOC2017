@@ -47,10 +47,11 @@
     (update-in state [:counter] #(+ 1 %))
     state))
 
-(q/defsketch lines
-  :host "host"
-  :size [1000 1000]
-  :setup setup
-  :draw draw
-  :update update
-  :middleware [m/fun-mode])
+(defn start-sketch []
+  (q/defsketch lines
+    :host "host"
+    :size [1000 1000]
+    :setup setup
+    :draw draw
+    :update update
+    :middleware [m/fun-mode]))
