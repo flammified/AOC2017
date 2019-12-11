@@ -1,9 +1,17 @@
 (ns util.intcode
   (:require [clojure.core.async :refer [chan go-loop close! >!! <!!]]
-            [clojure.edn :as edn]))
+            [clojure.edn :as edn]
+            [clojure.string :as str]))
 
 
 (defn arity [op] ({1 4 2 4 3 2 4 2 5 3 6 3 7 4 8 4 9 2 99 0} op))
+
+(defn parse-program [text]
+  (-> text
+      str/trim
+      (str/split #",")
+      (->> (map edn/read-string) (into []))))
+
 
 (defn get-memory [state i]
   (if (>= i (count (:program state)))
@@ -37,7 +45,6 @@
       :position))
 
 (defn set-memory [state i v]
-  ; (println "SM" i v)
   (if (> i (count (:program state)))
     (assoc-in state [:extra i] v)
     (assoc-in state [:program i] v)))
@@ -80,7 +87,6 @@
 (defmethod run-instruction 8 [{[i j target] :arguments} {:keys [program position] :as state}]
   (-> state
       (set-memory target (if (= i j) 1 0))
-
       (assoc-in [:position] (+ position 4))))
 
 (defmethod run-instruction 99 [{:keys [program position] :as state}]
@@ -88,6 +94,7 @@
       (assoc-in [:halted] true)))
 
 (defmethod run-instruction 9 [{[i] :arguments} {:keys [program position relative] :as state}]
+  ; (println (dissoc state :program))
   (-> state
       (assoc-in [:relative] (+ i relative))
       (assoc-in [:position] (+ position 2))))
@@ -104,6 +111,7 @@
 (defn run-program [{:keys [program position output relative extra] :as state}]
   (if (not (= (get-memory state position) 99))
     (let [[op params] (split-op (get program position))
+          ; _ (println op)
           arguments (->> (mapv vector (rest (get-arguments state position op)) (map mode-from-string (concat params (repeat nil))))
                          (#(cond
                             (last-can-be-positional? op) %
@@ -126,7 +134,7 @@
                           (last))))))
 
 (defn run-async [id program]
-  (let [in-chan (chan 2)
-        out-chan (chan)]
-    (go-loop [] (doall (take-while (fn [state] (not (:halted state))) (iterate run-program {:id id :halted false :position 0 :program program :input in-chan :output out-chan}))))
+  (let [in-chan (chan 5)
+        out-chan (chan 5)]
+    (go-loop [] (doall (take-while (fn [state] (not (:halted state))) (iterate run-program {:id id :halted false :position 0 :relative 0 :program program :extra {} :input in-chan :output out-chan}))))
     [in-chan out-chan]))
