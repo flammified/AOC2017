@@ -13,16 +13,12 @@
 
 (defn part-1 []
   (let [inp (to-chan [1])
-        outp (chan 2)]
-    (>!! inp 1)
+        outp (chan 20)]
     (run-sync input inp outp)
     (<!! (clojure.core.async/into [] outp))))
 
 (defn part-2 []
   (let [inp (to-chan [2])
-        outp (chan 2)]
+        outp (chan 20)]
     (run-sync input inp outp)
     (<!! (clojure.core.async/into [] outp))))
-
-(println (part-1))
-(println (part-2))

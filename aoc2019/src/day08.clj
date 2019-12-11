@@ -1,10 +1,10 @@
 (ns day08
   (:require [clojure.string :as str]
             [clojure.java.io :as io]
-            [clojure.edn :as edn])
+            [clojure.edn :as edn]))
 
-  (:use [loom.graph]
-        [loom.alg]))
+  ; (:use [loom.graph]
+        ; [loom.alg]))
 
 (def input
   (-> "day08/input.txt"

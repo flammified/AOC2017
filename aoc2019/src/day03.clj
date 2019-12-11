@@ -3,6 +3,7 @@
             [clojure.java.io :as io]
             [clojure.spec.alpha :as spec]
             [clojure.edn :as edn]
+            [clojure.core.async :refer [>!! <!! to-chan chan]]
             [clojure.math.numeric-tower :as math]))
 
 
