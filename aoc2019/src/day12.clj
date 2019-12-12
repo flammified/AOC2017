@@ -5,8 +5,6 @@
             [clojure.edn :as edn]
             [clojure.math.numeric-tower :as math]))
 
-;#1256 @ 277,6: 29x20
-
 (def text
   (-> "day12/input.txt" io/resource io/file slurp))
 
@@ -21,7 +19,6 @@
                   (dissoc :x)
                   (dissoc :y)
                   (dissoc :z)))))
-       ; (#(zipmap (cycle [:id]) % (range (count %))))))
 
 (defn generate-pairs [l]
   (->> (for [i (range l)
