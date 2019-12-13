@@ -27,13 +27,13 @@
       (#(identity {:w (count %) :h (count (get % 0)) :asteroids (grid-to-coordinates %)}))))
 
 (defn angle-to [[fx fy] [tx ty]]
-  (Math/atan2 (- fx tx) (- fy ty)))
+  (Math/atan2 (- ty fy) (- tx fx)))
 
 (defn distance [[fx fy] [tx ty]]
-  (math/sqrt (+ (math/expt (- tx fx) 2) (math/expt (- ty fy) 2))))
+  (math/sqrt (+ (math/expt (- fx tx) 2) (math/expt (- fy ty) 2))))
 
 (defn normalize [a]
-  (* -1 (+ a (/ Math/PI 2))))
+  (mod (+ (/ Math/PI 2) (if (neg? a) (+ a (* 2 Math/PI)) a)) (* 2 Math/PI)))
 
 (defn to-angles [asteroids [fx fy :as from]]
   (->> asteroids
@@ -49,25 +49,47 @@
                {})))
 
 (defn best-square [{:keys [w h asteroids]}]
-  (max-key count
-         (for [p asteroids]
-           (-> asteroids
-               (to-angles p)))))
+  (apply
+    max-key
+    :count
+    (for [p asteroids]
+      {:p p :count (-> asteroids
+                       (to-angles p)
+                       (keys)
+                       (count))})))
+
+(defn find-in-map [hm val]
+  (reduce
+    (fn [_ k]
+      (if (contains? (set (get hm k)) val)
+        (reduced k)
+        nil))
+    (keys hm)))
 
 (defn part-1 []
   (best-square input))
 
-(defn part-2 []
-  (let [grid (to-angles input (best-square input))
+(defn take-while-rotating [asteroids p n]
+  (let [grid (to-angles asteroids p)
         angles (sort (keys grid))]
-    ; (println angles)
     (loop [grid grid
            vaporized []]
-      ; (println (count vaporized))
-      (if (>= (count vaporized) 200)
+      (if (>= (count vaporized) 10)
         vaporized
-        (recur (reduce #(update %1 %2 pop) grid angles) (concat vaporized (filter some? (->> angles (map (partial get grid)) (map peek)))))))))
+        (recur
+          (reduce #(update
+                     %1
+                     %2
+                     (fn [l] (drop 1 l)))
+                   grid
+                  angles)
+          (concat vaporized
+                  (filter
+                    some?
+                    (->> angles
+                         (map (partial get grid))
+                         (map first)))))))))
 
 
-
-(println (part-1))
+(defn part-2 []
+  (nth (take-while-rotating (:asteroids input) (:p (best-square input)) 200) 199))

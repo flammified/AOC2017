@@ -27,8 +27,8 @@
 (defn play [input]
   (let [[in out] (run-async :block input)]
     (loop [output {}
-           [lx ly] [19 19]
-           [lpx lpy] [20 2]
+           [lx ly :as last-ball-position] [19 19]
+           [lpx lpy :as last-paddle position] [20 2]
            score 0]
       (do
         (let [x (<!! out)
@@ -40,26 +40,14 @@
               (case x
                 -1 (recur output [lx ly] [lpx lpy] z)
                 (case z
-                  3 (recur
-                        (-> output (assoc [x y] 3) (assoc [lx ly] 10))
-                        [lx ly]
-                        [x y]
-                        score)
+                  3 (recur output [lx ly] [x y] score)
                   4 (do
                       (cond
                         (< lpx x) (do (>!! in 1))
                         (> lpx x) (do (>!! in -1))
                         :else (>!! in 0))
-                      (recur
-                        (-> output (assoc [x y] 4) (assoc [lx ly] 11))
-                        [x y]
-                        [lpx lpy]
-                        score))
-                  (recur
-                    (assoc output [x y] z)
-                    [lx ly]
-                    [lpx lpy]
-                    score))))))))))
+                      (recur output [x y] [lpx lpy] score))
+                  (recur (assoc output [x y] z) [lx ly] [lpx lpy] score))))))))))
 
 (defn part-1 []
   (initial-state (filter #{2} (vals (initial-state input)))))

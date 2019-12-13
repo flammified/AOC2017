@@ -111,7 +111,6 @@
 (defn run-program [{:keys [program position output relative extra] :as state}]
   (if (not (= (get-memory state position) 99))
     (let [[op params] (split-op (get program position))
-          ; _ (println op)
           arguments (->> (mapv vector (rest (get-arguments state position op)) (map mode-from-string (concat params (repeat nil))))
                          (#(cond
                             (last-can-be-positional? op) %
