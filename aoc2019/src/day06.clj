@@ -1,9 +1,9 @@
 (ns day06
   (:require [clojure.string :as str]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io])
 
-  ; (:use [loom.graph]
-        ; [loom.alg]))
+  (:use [loom.graph]
+        [loom.alg]))
 
 (def input
   (-> "day06/input.txt"

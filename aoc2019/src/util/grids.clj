@@ -46,19 +46,18 @@
 (defn step [pos dir]
   (mapv + pos (direction-to-vector dir)))
 
-(defn draw-sparse [grid]
-  (let [nodes (keys grid)
-        [maxx maxy] (aabb nodes)
-        [minx miny] (aabb-min nodes)
-        draw-str (str/join "\n"
-                   (doall
-                       (for [y (range miny (inc maxy))]
-                         (str/join
-                           (for [x (range minx (inc maxx))]
-                             (do
-                               (if (= 1 (get grid [x y]))
-                                 "█"
-                                 " ")))))))]
+(defn draw-sparse [grid ch]
+  (if (not (empty? (keys grid)))
+     (let [nodes (keys grid)
+           [maxx maxy] (aabb nodes)
+           [minx miny] (aabb-min nodes)
+           draw-str (str/join "\n"
+                      (doall
+                          (for [y (range miny (inc maxy))]
+                            (str/join
+                              (for [x (range minx (inc maxx))]
+                                (do
+                                  (ch (get grid [x y]))))))))]
 
-    (println draw-str)
-    draw-str))
+       (println draw-str)
+       draw-str)))

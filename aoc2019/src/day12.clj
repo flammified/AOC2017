@@ -98,10 +98,10 @@
        (reduce +)))
 
 
-
 (defn part-2 []
   ;; I did the LCM using an online tool; @TODO write LCM function for >2 numbers
-  (println
-    (first-duplicate (iterate (partial step-single 0) input))
-    (first-duplicate (iterate (partial step-single 1) input))
+  (math/lcm
+    (math/lcm
+      (first-duplicate (iterate (partial step-single 0) input))
+      (first-duplicate (iterate (partial step-single 1) input)))
     (first-duplicate (iterate (partial step-single 2) input))))
