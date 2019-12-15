@@ -12,46 +12,54 @@
       io/resource io/file slurp str/trim
       (intcode/parse-program)))
 
-(defn choose-dir [pos chosen grid]
+(defn choose-dir [pos grid]
   (first
     (filter
-        #(and
-           (not (contains? (set (get chosen pos)) %))
-           (not (= :wall (get grid (grids/step pos %)))))
+      #(not (some? (get grid (grids/step pos %))))
       [:north :east :south :west])))
 
 (defn explore-maze []
   (let [[in out] (run-async :block input)]
     (loop [stack []
            position [0 0]
-           chosen-dirs {}
-           grid {}]
-      (do
-        (let [direction (choose-dir position chosen-dirs grid)]
+           grid {}
+           distance 0]
+        (let [direction (choose-dir position grid)
+              previous-direction (last stack)]
           (if (nil? direction)
-            (let [direction (grids/opposite (last stack))
-                  send? (>!! in (grids/dir direction))
-                  status (<!! out)]
-              (recur (pop stack)
-                     (grids/step position direction)
-                     chosen-dirs
-                     grid))
+            (if (nil? previous-direction)
+              grid
+              (let [send? (>!! in (grids/dir (grids/opposite previous-direction)))
+                    status (<!! out)]
+                (recur (pop stack)
+                       (grids/step position (grids/opposite previous-direction))
+                       grid
+                       (dec distance))))
+
             (let [send? (>!! in (grids/dir direction))
                   status (<!! out)]
               (case status
                 0 (recur
                       stack
                       position
-                      (update chosen-dirs position conj direction)
-                      (assoc grid (grids/step position direction) :wall))
+                      (-> grid
+                          (assoc-in [(grids/step position direction) :type] :wall)
+                          (assoc-in [(grids/step position direction) :distance] (inc distance)))
+                      distance)
                 1 (recur
                       (conj stack direction)
                       (grids/step position direction)
-                      (update chosen-dirs position conj direction)
-                      (assoc grid (grids/step position direction) :empty))
-                2 (do
-                    [(grids/step position direction)
-                     (keys (filter (fn [[k v]] (= v :empty)) grid))])))))))))
+                      (-> grid
+                          (assoc-in [(grids/step position direction) :type] :empty)
+                          (assoc-in [(grids/step position direction) :distance] (inc distance)))
+                      (inc distance))
+                2 (recur
+                    (conj stack direction)
+                    (grids/step position direction)
+                    (-> grid
+                        (assoc-in [(grids/step position direction) :type] :tank)
+                        (assoc-in [(grids/step position direction) :distance] (inc distance)))
+                    (inc distance)))))))))
 
 
 (defn propagate-oxygen [oxygen positions]
@@ -76,11 +84,26 @@
           (set/difference (set positions) (set next-oxygen))
           (inc i))))))
 
+(defn draw-maze [maze]
+  (spit "maze.txt"
+    (draw-sparse
+      (assoc maze [0 0] {:type :start :distance 0})
+      #(case (:type %2) :start "⭕️" :wall "█" :empty " " :tank "✅" " "))))
+
+(defn get-tank [maze]
+  (first (filter (fn [[k v]] (= (:type v) :tank)) maze)))
 
 (defn part-1 []
-  (let [[tank positions] (explore-maze)]
-    [tank positions]))
+  (let [grid (explore-maze)
+        [coord square] (get-tank grid)]
+    (draw-maze grid)
+    (:distance square)))
 
 (defn part-2 []
-  (let [[tank positions] (explore-maze)]
-    (time-until-filled tank positions)))
+  (let [grid (explore-maze)
+        [coord square] (get-tank grid)]
+    (time-until-filled
+      coord
+      (keys (filter (fn [[k v]] (= (:type v) :empty)) grid)))))
+
+(println (part-1))
