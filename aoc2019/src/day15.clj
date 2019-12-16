@@ -105,5 +105,3 @@
     (time-until-filled
       coord
       (keys (filter (fn [[k v]] (= (:type v) :empty)) grid)))))
-
-(println (part-1))

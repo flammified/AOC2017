@@ -17,7 +17,6 @@ offset = int(num[0:7])
 num = list(num)
 
 for y in range(0, 100):
-    print(y)
     num = phase(num, offset)
 
 print("".join(num)[offset:offset+8])
