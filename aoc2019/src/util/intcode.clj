@@ -94,7 +94,6 @@
       (assoc-in [:halted] true)))
 
 (defmethod run-instruction 9 [{[i] :arguments} {:keys [program position relative] :as state}]
-  ; (println (dissoc state :program))
   (-> state
       (assoc-in [:relative] (+ i relative))
       (assoc-in [:position] (+ position 2))))
