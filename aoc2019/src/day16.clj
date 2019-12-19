@@ -56,11 +56,11 @@
     (range (- (count signal) 2) -1 -1)))
 
 (defn part-2 []
-  (let [offset (edn/read-string (apply str (take 7 input)))]
+  (let [offset (edn/read-string (apply str (take 7 input-2)))]
     (->> (reduce
            (fn [signal _]
              (phase-2 (vec signal)))
-           (drop offset input)
+           (drop offset input-2)
            (range 100))
          (take 8)
          (apply str))))
