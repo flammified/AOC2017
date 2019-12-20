@@ -25,10 +25,9 @@
             (recur (if (pos? status) (inc c) c) (if (< x 50) (inc x) 0) (if (= x 49) (inc y) y)))))))
 
 (defn get-pos [[x y]]
-  (let [[in out] (run-async :beam input)]
+  (let [out (chan 1)
+        _ (run-sync input (async/to-chan [x y]) out)]
     (do
-      (>!! in x)
-      (>!! in y)
       (let [status (<!! out)]
         status))))
 
@@ -53,5 +52,3 @@
              (>= r 100))))
 
     (for [y (range 1248 1400) x (range 800 1400)] [x y])))
-
-(println (part-1))

@@ -74,7 +74,7 @@
         angles (sort (keys grid))]
     (loop [grid grid
            vaporized []]
-      (if (>= (count vaporized) 10)
+      (if (>= (count vaporized) n)
         vaporized
         (recur
           (reduce #(update

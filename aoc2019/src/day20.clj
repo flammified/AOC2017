@@ -51,70 +51,35 @@
     []
     (keys grid)))
 
-(defn go-through-portal [grid position]
-    (if-let [key (-> (get grid position) :portal :label)]
-      (let [others (find-in-map grid key)
-            [f s] others]
-        (if (= f position)
-          s
-          f))))
-
-(defn go-through-portal-2 [grid [x y] layer]
-  (if-let [key (get-in grid [[x y] :portal :label])]
+(defn portal [grid position layer]
+  (if-let [key (-> (get grid position) :portal :label)]
     (let [others (find-in-map grid key)
-          up? (get-in grid [[x y] :portal :up])
-          f (case (get-in grid [[x y] :portal :up]) true inc dec)
-          [[fx fy] [sx sy]] others]
+          [f s] others]
+      (if (= f position)
+        [s 0]
+        [f 0]))))
+
+(defn recursive-portal [grid position layer]
+  (if-let [label (get-in grid [position :portal :label])]
+    (let [others (find-in-map grid label)
+          [first second] others
+          up? (get-in grid [position :portal :up])
+          f (case up? true inc dec)]
       (if (and (not up?) (= layer 0))
         nil
-        (do
-          ; (println "KEY" key "LAYER" (f layer) "F" f)
-          (if (and (> layer 0) (or (= key [\A \A]) (= key [\Z \Z])))
-            nil
-            (if (and (> (count others) 1) (= [fx fy] [x y]))
-              [[sx sy] (f layer)]
-              [[fx fy] (f layer)])))))))
+        (if (and (> layer 0) (or (= label [\A \A]) (= label [\Z \Z])))
+          nil
+          (if (and (> (count others) 1) (= first position))
+            [first (f layer)]
+            [second (f layer)]))))))
 
-(defn bfs [grid start end]
-  (loop [queue (conj clojure.lang.PersistentQueue/EMPTY [start 0])
-         visited {start true}
-         result {}]
-    (if (empty? queue)
-      result
-      (let [[current distance] (peek queue)]
-        (recur
-          (->> (reduce
-                 (fn [new-queue dir]
-                   (let [next (grids/step current dir)
-                         {:keys [tile]} (get grid next)]
-                     (if (get visited next)
-                       new-queue
-                       (case tile
-                         \# new-queue
-                         \space new-queue
-                         nil new-queue
-                         \. (conj new-queue [next (inc distance)])
-                         new-queue))))
-                 (pop queue)
-                 [:north :east :south :west])
-            ((fn [queue]
-               (let [other (go-through-portal grid current)]
-                 (if (and (some? other) (nil? (get visited other)))
-                   (conj queue [other (inc distance)])
-                   queue)))))
-          (assoc visited current true)
-          (assoc result current distance))))))
-
-(defn bfs-recursive [grid start end]
+(defn bfs [grid start end portal-func]
   (loop [queue (conj clojure.lang.PersistentQueue/EMPTY [start 0 0])
          visited {start true}
          result {}]
     (if (empty? queue)
       result
       (let [[current distance layer] (peek queue)]
-        ; (println current distance layer)
-        (spit "layers.txt" (str layer "\n") :append true)
-        (spit "distance.txt" (str distance "\n") :append true)
         (if (and (= current end) (= layer 0))
           distance
           (recur
@@ -133,7 +98,7 @@
                    (pop queue)
                    [:north :east :south :west])
                  ((fn [queue]
-                     (let [[other layer] (go-through-portal-2 grid current layer)]
+                     (let [[other layer] (portal-func grid current layer)]
                        (if (and (some? other) (nil? (get visited (conj other layer))))
                          (conj queue [other (inc distance) layer])
                          queue)))))
@@ -144,7 +109,7 @@
   (let [grid (parse input)
         start (first (find-in-map grid [\A \A]))
         end (first (find-in-map grid [\Z \Z]))]
-    (get (bfs grid start end) end)))
+    (bfs grid start end portal)))
 
 
 (defn part-2 []
@@ -152,7 +117,4 @@
         start (first (find-in-map grid [\A \A]))
         end (first (find-in-map grid [\Z \Z]))]
     (println (find-in-map grid [\A \A]))
-    (bfs-recursive grid start end)))
-
-
-(println (part-2))
+    (bfs grid start end recursive-portal)))
