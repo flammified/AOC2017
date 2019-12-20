@@ -132,7 +132,7 @@
                           (last))))))
 
 (defn run-async [id program]
-  (let [in-chan (chan 5)
-        out-chan (chan 5)]
+  (let [in-chan (chan 50)
+        out-chan (chan 50)]
     (go-loop [] (doall (take-while (fn [state] (not (:halted state))) (iterate run-program {:id id :halted false :position 0 :relative 0 :program program :extra {} :input in-chan :output out-chan}))))
     [in-chan out-chan]))
