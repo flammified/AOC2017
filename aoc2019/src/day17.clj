@@ -23,7 +23,7 @@
           10 (recur grid (assoc (grids/step position :south) 0 0));)))))))
           46 (recur (assoc grid position "∼") (grids/step position :east));)))))))
           35 (recur (assoc grid position "#") (grids/step position :east));)))))))
-          58 (do (println (<!! out)) [in out grid])
+          58 [in out grid]
           (recur (assoc grid position (char tile)) (grids/step position :east)))))));))))))))))
 
 (defn intersections [grid]
