@@ -82,14 +82,6 @@
         i
         (recur (conj s (first coll)) (drop 1 coll) (inc i)))))
 
-(defn lcm [& xs]
-  (let [x (apply max xs)]
-    (loop [n 2]
-      (let [r (* n x)]
-        (if (every? #(zero? (mod r %)) xs)
-          r
-          (recur (inc n)))))))
-
 (defn part-1 []
   (->> (nth (iterate step-all input) 1000)
        (map (fn [moon]
@@ -97,9 +89,7 @@
                 (* (energy position) (energy velocity)))))
        (reduce +)))
 
-
 (defn part-2 []
-  ;; I did the LCM using an online tool; @TODO write LCM function for >2 numbers
   (math/lcm
     (math/lcm
       (first-duplicate (iterate (partial step-single 0) input))

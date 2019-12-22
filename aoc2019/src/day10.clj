@@ -67,7 +67,7 @@
     (keys hm)))
 
 (defn part-1 []
-  (best-square input))
+  (:p (best-square input)))
 
 (defn take-while-rotating [asteroids p n]
   (let [grid (to-angles asteroids p)

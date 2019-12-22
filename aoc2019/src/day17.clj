@@ -58,7 +58,6 @@
     (send-function in "n\n")
     (loop []
       (let [text (<!! out)]
-        (println text)
         (if (some? text)
           (cond
             (> text 120) text
@@ -73,5 +72,3 @@
 (defn part-2 []
   (let [[in out grid] (create-grid (assoc input 0 2))]
     (functions in out)))
-
-(part-2)

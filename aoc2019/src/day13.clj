@@ -9,20 +9,18 @@
 (def input
   (-> "day13/input.txt"
       io/resource io/file slurp str/trim
-      (intcode/parse-program)
-      (assoc 0 2)))
+      (intcode/parse-program)))
 
-(defn initial-state
-  ([input]
-   (let [[in out] (run-async :painter input)]
-     (loop [output {}]
-       (do
-         (let [x (<!! out)
-               y (<!! out)
-               type (<!! out)]
-           (if (not (and (some? x) (some? y)))
-             output
-             (recur (assoc output [x y] type)))))))))
+(defn initial-state [input]
+  (let [[in out] (run-async :painter input)]
+    (loop [output {}]
+      (do
+        (let [x (<!! out)
+              y (<!! out)
+              type (<!! out)]
+          (if (not (and (some? x) (some? y)))
+            output
+            (recur (assoc output [x y] type))))))))
 
 (defn play [input]
   (let [[in out] (run-async :block input)]
@@ -50,8 +48,10 @@
                   (recur (assoc output [x y] z) [lx ly] [lpx lpy] score))))))))))
 
 (defn part-1 []
-  (initial-state (filter #{2} (vals (initial-state input)))))
+  (count (filter #{2} (vals (initial-state input)))))
 
 (defn part-2 []
-  (let [score (play input)]
-    (println score)))
+  (let [score (play (assoc input 0 2))]
+    score))
+
+(part-1)

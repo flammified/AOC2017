@@ -115,6 +115,5 @@
 (defn part-2 []
   (let [grid (parse input)
         start (first (find-in-map grid [\A \A]))
-        end (first (find-in-map grid [\Z \Z]))]
-    (println (find-in-map grid [\A \A]))
+        end (first (find-in-map grid [\Z \Z]))]    
     (bfs grid start end recursive-portal)))

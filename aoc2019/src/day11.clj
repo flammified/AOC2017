@@ -1,4 +1,4 @@
-(ns day08
+(ns day11
   (:require [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.edn :as edn]
@@ -37,5 +37,5 @@
 (defn part-2 []
   (let [inp (panels input {[0 0] 1})
         grid (keys inp)]
-    (draw-sparse inp)
+    (draw-sparse inp (fn [pos ch] (case ch 1 "█" " ")))
     nil))

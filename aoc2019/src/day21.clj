@@ -72,5 +72,3 @@
 
 (defn part-2 []
   (program-2))
-
-(println (part-2))
