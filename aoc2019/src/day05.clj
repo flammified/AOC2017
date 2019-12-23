@@ -12,14 +12,7 @@
       (->> (map edn/read-string) (into []))))
 
 (defn part-1 []
-  (let [inp (chan 1)
-        outp (chan 20)]
-    (>!! inp 1)
-    (run-sync input inp outp)
-    (first (<!! (clojure.core.async/into [] outp)))))
+  (last (:output (run-sync input [1]))))
 
 (defn part-2 []
-  (let [inp (to-chan [5])
-        outp (chan 1)]
-    (run-sync input inp outp)
-    (first (<!! (clojure.core.async/into [] outp)))))
+  (last (:output (run-sync input [5]))))

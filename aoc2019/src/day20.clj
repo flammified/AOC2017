@@ -30,7 +30,6 @@
     false
     [:north :east :south :west]))
 
-
 (defn parse [i]
   (let [h (count i)
         w (count (get i 2))]
@@ -60,18 +59,19 @@
         [f 0]))))
 
 (defn recursive-portal [grid position layer]
-  (if-let [label (get-in grid [position :portal :label])]
-    (let [others (find-in-map grid label)
-          [first second] others
+  (if-let [key (get-in grid [position :portal :label])]
+    (let [others (find-in-map grid key)
           up? (get-in grid [position :portal :up])
-          f (case up? true inc dec)]
+          f (case (get-in grid [position :portal :up]) true inc dec)
+          [first second] others]
       (if (and (not up?) (= layer 0))
         nil
-        (if (and (> layer 0) (or (= label [\A \A]) (= label [\Z \Z])))
-          nil
-          (if (and (> (count others) 1) (= first position))
-            [first (f layer)]
-            [second (f layer)]))))))
+        (do
+          (if (and (> layer 0) (or (= key [\A \A]) (= key [\Z \Z])))
+            nil
+            (if (and (> (count others) 1) (= first position))
+              [second (f layer)]
+              [first (f layer)])))))))
 
 (defn bfs [grid start end portal-func]
   (loop [queue (conj clojure.lang.PersistentQueue/EMPTY [start 0 0])
@@ -98,10 +98,12 @@
                    (pop queue)
                    [:north :east :south :west])
                  ((fn [queue]
-                     (let [[other layer] (portal-func grid current layer)]
-                       (if (and (some? other) (nil? (get visited (conj other layer))))
-                         (conj queue [other (inc distance) layer])
-                         queue)))))
+                    (let [[other layer] (portal-func grid current layer)]
+                      (if (and (some? other) (nil? (get visited (conj other layer))))
+                        (if (< layer 26)
+                          (conj queue [other (inc distance) layer])
+                          queue)
+                        queue)))))
             (assoc visited (conj current layer) true)
             (assoc result current distance)))))))
 
@@ -111,9 +113,8 @@
         end (first (find-in-map grid [\Z \Z]))]
     (bfs grid start end portal)))
 
-
 (defn part-2 []
   (let [grid (parse input)
         start (first (find-in-map grid [\A \A]))
-        end (first (find-in-map grid [\Z \Z]))]    
+        end (first (find-in-map grid [\Z \Z]))]
     (bfs grid start end recursive-portal)))
