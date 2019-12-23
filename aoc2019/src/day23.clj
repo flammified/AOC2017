@@ -27,11 +27,9 @@
                NAT nil
                last-send nil]
             (let [{:keys [output position input] :as state} (get pcs (first ids))]
-              (spit "last-send.txt" (str last-send "\n"))
               (do
                 (if (not (empty? output))
                   (let [[addr x y] (subvec output 0 3)]
-                    (if (= addr 255) (println "YEET" [x y]))
                     (do
                       (recur (-> pcs
                                  (assoc (first ids) (-> state
@@ -42,9 +40,8 @@
                              0
                              (if (= addr 255) [x y] NAT)
                              last-send)))
-                  (if (> counter 10000)
+                  (if (> counter 75)
                     (do
-                      (println last-send)
                       (if (= NAT last-send)
                         (second last-send)
                         (recur (-> pcs
@@ -65,8 +62,5 @@
 
 (defn part-1 []
   (run-network))
-;
-; (defn part-2 []
-;   (program-2))
 
 (println (part-1))

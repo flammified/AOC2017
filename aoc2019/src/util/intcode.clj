@@ -1,5 +1,5 @@
 (ns util.intcode
-  (:require [clojure.core.async :refer [chan go-loop close! >!! <!!]]
+  (:require [clojure.core.async :as async :refer [chan go-loop close! >!! <!! poll!]]
             [clojure.edn :as edn]
             [clojure.string :as str]))
 
@@ -59,15 +59,27 @@
   (-> state (set-memory target (* i j))
             (assoc-in [:position] (+ position 4))))
 
-(defmethod run-instruction 3 [{[i] :arguments} {:keys [program position input] :as state}]
-  (let [inp (<!! input)]
-    (-> state (set-memory i inp)
-              (assoc-in [:position] (+ position 2)))))
+(defmethod run-instruction 3 [{[i] :arguments} {:keys [id program position input id async?] :as state}]
+  (let [inp (if async?
+                  (<!! input)
+                  (first input))]
+    (if (some? inp)
+      (-> state (set-memory i inp)
+                (assoc-in [:position] (+ position 2))
+                (#(if (not async?) (update % :input (fn [i] (vec (drop 1 i)))) %)))
+      (-> state (set-memory i -1)
+                (assoc-in [:position] (+ position 2))
+                (assoc :idle true)))))
 
-(defmethod run-instruction 4 [{[i] :arguments} {:keys [program position output] :as state}]
-  (do
-    (>!! output i)
-    (-> state (assoc-in [:position] (+ position 2)))))
+
+(defmethod run-instruction 4 [{[i] :arguments} {:keys [id program position output async?] :as state}]
+  (spit (str "output-" id ".txt") (str output "\n") :append true)
+  (if async?
+    (do
+      (>!! output i)
+      (-> state (assoc-in [:position] (+ position 2))))
+    (-> state (assoc-in [:position] (+ position 2))
+              (update :output conj i))))
 
 (defmethod run-instruction 5 [{[i j] :arguments} {:keys [program position] :as state}]
   (if (not (zero? i))
@@ -107,8 +119,10 @@
     []
     (range (arity op))))
 
-(defn run-program [{:keys [program position output relative extra] :as state}]
-  (if (not (= (get-memory state position) 99))
+(defn run-program [{:keys [id async? program position output input relative extra] :as state}]
+  (if (and (not (:halted state))
+           (not (:idle state))
+           (not (= (get-memory state position) 99)))
     (let [[op params] (split-op (get program position))
           arguments (->> (mapv vector (rest (get-arguments state position op)) (map mode-from-string (concat params (repeat nil))))
                          (#(cond
@@ -122,17 +136,43 @@
                          (mapv #(apply (partial get-value program state) %)))]
       (run-instruction {:opcode op :arguments arguments} state))
     (do
-      (close! output)
+      (if (and async? (= (get-memory state position) 99)) (close! output))
       (assoc state :halted true))))
 
-(defn run-sync [program in-channel out-channel]
-  (-> program
-      ((fn [program] (->> (iterate run-program {:halted false :relative 0 :position 0 :program program :extra {} :input in-channel :output out-channel})
-                          (take-while (fn [state] (not (:halted state))))
-                          (last))))))
+(defn run-state [state]
+  (->> (iterate run-program state)
+       (drop-while (fn [state] (and (not (:idle state)) (not (:halted state)))))
+       (first)))
+
+(defn run-sync [program initial-input]
+  (->> (iterate run-program {:async? false
+                             :halted false
+                             :idle false
+                             :idle-counter 0
+                             :relative 0
+                             :position 0
+                             :program program
+                             :extra {}
+                             :input initial-input
+                             :output []})
+       (drop-while (fn [state] (and (not (:idle state)) (not (:halted state)))))
+       (first)))
 
 (defn run-async [id program]
-  (let [in-chan (chan 50)
-        out-chan (chan 50)]
-    (go-loop [] (doall (take-while (fn [state] (not (:halted state))) (iterate run-program {:id id :halted false :position 0 :relative 0 :program program :extra {} :input in-chan :output out-chan}))))
+  (let [in-chan (chan 100)
+        out-chan (chan 100)]
+    (go-loop []
+      (doall
+        (take-while (fn [state]
+                      (and (not (:idle state))
+                           (not (:halted state))))
+                    (iterate run-program {:async? true
+                                          :halted false
+                                          :idle false
+                                          :position 0
+                                          :relative 0
+                                          :program program
+                                          :extra {}
+                                          :input in-chan
+                                          :output out-chan}))))
     [in-chan out-chan]))
