@@ -37,8 +37,6 @@
 (defn right [[x y]]
   (count (take-while #(= 1 (get-pos %)) (iterate #(grids/step % :east) [x y]))))
 
-(def right (memoize right))
-
 (defn part-1 []
   (count-1s input))
 ;
