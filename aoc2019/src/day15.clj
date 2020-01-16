@@ -84,19 +84,12 @@
           (set/difference (set positions) (set next-oxygen))
           (inc i))))))
 
-(defn draw-maze [maze]
-  (spit "maze.txt"
-    (draw-sparse
-      (assoc maze [0 0] {:type :start :distance 0})
-      #(case (:type %2) :start "⭕️" :wall "█" :empty " " :tank "✅" " "))))
-
 (defn get-tank [maze]
   (first (filter (fn [[k v]] (= (:type v) :tank)) maze)))
 
 (defn part-1 []
   (let [grid (explore-maze)
         [coord square] (get-tank grid)]
-    (draw-maze grid)
     (:distance square)))
 
 (defn part-2 []

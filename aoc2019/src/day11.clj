@@ -37,5 +37,5 @@
 (defn part-2 []
   (let [inp (panels input {[0 0] 1})
         grid (keys inp)]
-    (draw-sparse inp (fn [pos ch] (case ch 1 "█" " ")))
+    (draw-sparse inp (fn [pos ch] (case ch 1 "#" " ")))
     nil))

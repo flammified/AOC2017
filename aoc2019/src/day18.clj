@@ -129,6 +129,3 @@
                    (filter some?)
                    (into {}))]
     (shortest-paths graph [\@ \% \^ \&] [])))
-
-
-(println (part-2))

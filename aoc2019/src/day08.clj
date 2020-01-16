@@ -23,5 +23,6 @@
       (partition 25)
       (map (partial apply str))
       (map #(str/replace % #"0" " "))
-      (map #(str/replace % #"1" "█"))
-      (str/join "\n")))
+      (map #(str/replace % #"1" "#"))
+      (str/join "\n")
+      ((fn [a] (str "\n" a)))))

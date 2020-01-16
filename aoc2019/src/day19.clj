@@ -4,7 +4,11 @@
             [clojure.edn :as edn]
             [util.intcode :as intcode :refer [run-sync]]
             [clojure.core.async :as async :refer [poll! >!! <!! to-chan chan offer!]]
-            [util.grids :as grids :refer [draw-sparse]]))
+            [util.grids :as grids :refer [draw-sparse]]
+            [taoensso.tufte :as tufte :refer (defnp p profiled profile)]))
+
+
+(tufte/add-basic-println-handler! {})
 
 
 (def input
@@ -12,24 +16,17 @@
       io/resource io/file slurp str/trim
       (intcode/parse-program)))
 
+(defn get-pos [[x y]]
+  (first (:output (run-sync input [x y]))))
 
 (defn count-1s [input]
-    (loop [c 0
-           x 0
-           y 0]
-      (let [out (chan 1)
-            _ (run-sync input (async/to-chan [x y]) out)]
-        (if (= y 50)
-          c
-          (let [status (<!! out)]
-            (recur (if (pos? status) (inc c) c) (if (< x 50) (inc x) 0) (if (= x 49) (inc y) y)))))))
-
-(defn get-pos [[x y]]
-  (let [out (chan 1)
-        _ (run-sync input (async/to-chan [x y]) out)]
-    (do
-      (let [status (<!! out)]
-        status))))
+  (loop [c 0
+         x 0
+         y 0]
+    (let [status (get-pos [x y])]
+      (if (= y 50)
+        c
+        (recur (if (pos? status) (inc c) c) (if (< x 50) (inc x) 0) (if (= x 49) (inc y) y))))))
 
 (defn below [[x y]]
   (count (take-while #(do (= 1 (get-pos %))) (iterate #(grids/step % :south) [x y]))))
@@ -39,13 +36,12 @@
 
 (defn part-1 []
   (count-1s input))
-;
+
 (defn part-2 []
   (filter
     (fn [[x y]]
       (let [b (below [x y])
             r (right [x y])]
-        (println [x y] b r)
         (and (>= b 100)
              (>= r 100))))
 
