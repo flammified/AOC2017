@@ -46,23 +46,21 @@
               (conj reachable-keys [current tile distance needed-keys])
               reachable-keys))))))
 
-(def reachable-keys (memoize reachable-keys))
-
 (def shortest-path
   (memoize
     (fn [graph start collected-keys]
       (let [optional-keys (get graph start)
             keys-to-get (filter (fn [[coord key distance dependencies]]
-                                  (not (contains? collected-keys key)))
+                                  (and
+                                    (not (contains? collected-keys key))
+                                    (every?
+                                      (fn [key]
+                                        (contains? collected-keys key))
+                                      dependencies)))
                                 optional-keys)]
         (if (empty? keys-to-get)
           0
           (->> keys-to-get
-               (filter (fn [[coord key distance dependencies]]
-                        (every?
-                          (fn [key]
-                            (contains? collected-keys key))
-                          dependencies)))
                (map (fn [[coord key distance dependencies]]
                       (+ distance
                          (shortest-path
@@ -77,22 +75,20 @@
       (let [keys-to-get (->> starts
                             (map #(get graph %))
                             (map #(filter (fn [[coord key distance dependencies]]
-                                            (not (contains? collected-keys key)))
-                                          %))
-                            (map #(filter (fn [[coord key distance dependencies]]
-                                           (every?
-                                             (fn [key]
-                                               (contains? collected-keys key))
-                                             dependencies))
+                                            (and (not (contains? collected-keys key))
+                                                 (every?
+                                                   (fn [key]
+                                                     (contains? collected-keys key))
+                                                   dependencies)))
                                           %))
                             (map-indexed (fn [idx keys] (map #(conj % idx) keys)))
                             (apply concat))]
         (if (empty? keys-to-get)
           0
           (->> keys-to-get
-               (map (fn [[coord key distance dependencies robot]]
-                      (+ distance (shortest-paths graph (assoc starts robot key) (set (conj collected-keys key))))))
-               (apply min)))))))
+               (reduce (fn [smallest [coord key distance dependencies robot]]
+                         (min smallest (+ distance (shortest-paths graph (assoc starts robot key) (set (conj collected-keys key))))))
+                       Integer/MAX_VALUE)))))))
 
 
 

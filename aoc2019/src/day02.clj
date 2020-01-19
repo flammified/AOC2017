@@ -36,9 +36,9 @@
   (run input 12 2))
 
 (defn part-2 []
-  (filter some?
-    (for [noun (range 352)
-          verb (range 352)]
-        (if (= 19690720 (run input noun verb))
-          (+ verb (* 100 noun))
-          nil))))
+  (first (filter some?
+           (for [noun (range 100)
+                 verb (range 100)]
+               (if (= 19690720 (run input noun verb))
+                 (+ verb (* 100 noun))
+                 nil)))))

@@ -38,11 +38,12 @@
   (count-1s input))
 
 (defn part-2 []
-  (filter
-    (fn [[x y]]
-      (let [b (below [x y])
-            r (right [x y])]
-        (and (>= b 100)
-             (>= r 100))))
+  (first
+    (filter
+      (fn [[x y]]
+        (let [b (below [x y])
+              r (right [x y])]
+          (and (>= b 100)
+               (>= r 100))))
 
-    (for [y (range 1248 1400) x (range 800 1400)] [x y])))
+      (for [y (range 1247 1249) x (range 1121 1123)] [x y]))))

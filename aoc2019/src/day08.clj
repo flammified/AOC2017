@@ -3,9 +3,6 @@
             [clojure.java.io :as io]
             [clojure.edn :as edn]))
 
-  ; (:use [loom.graph]
-        ; [loom.alg]))
-
 (def input
   (-> "day08/input.txt"
       io/resource io/file slurp str/trim (str/split #"")
