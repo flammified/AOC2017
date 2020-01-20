@@ -12,7 +12,7 @@
       (intcode/parse-program)))
 
 (defn initial-state [input]
-  (let [[in out] (run-async :painter input)]
+  (let [[in out] (run-async :breakout input)]
     (loop [output {}]
       (do
         (let [x (<!! out)
@@ -53,5 +53,3 @@
 (defn part-2 []
   (let [score (play (assoc input 0 2))]
     score))
-
-(part-1)

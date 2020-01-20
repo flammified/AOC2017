@@ -35,12 +35,6 @@
     grid
     (keys grid)))
 
-(defn find-in-map [hm val]
-  (first
-    (filter
-      #(= val (get hm %))
-      (keys hm))))
-
 (defn first-duplicate [coll]
   (loop [s #{}
          coll coll]
@@ -57,7 +51,6 @@
 (defn biodiv [grid]
   (reduce
     (fn [i [x y layer]]
-      ; (println (get grid [x y layer]))
       (if (not (= \# (get grid [x y layer])))
         i
         (+ i (math/expt 2 (+ (* y 5) x)))))
@@ -114,7 +107,6 @@
                  (fn [new coord]
                    (let [tile (or (get grid coord) \.)
                          amount (or (get counts coord) 0)]
-                     ; (println tile coord amount)
                      (assoc new coord
                        (cond
                          (and (= tile \.) (or (= amount 1) (= amount 2)))
@@ -136,6 +128,3 @@
         (nth 200)
         (->> (filter (fn [[k v]] (= v \#)))
              (count)))))
-
-
-(println (part-2))

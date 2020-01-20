@@ -1,7 +1,6 @@
 (ns day04
   (:require [clojure.string :as str]
             [clojure.java.io :as io]
-            [clojure.spec.alpha :as spec]
             [clojure.edn :as edn]
             [clojure.math.numeric-tower :as math]))
 

@@ -1,7 +1,6 @@
 (ns day03
   (:require [clojure.string :as str]
             [clojure.java.io :as io]
-            [clojure.spec.alpha :as spec]
             [clojure.edn :as edn]
             [clojure.core.async :refer [>!! <!! to-chan chan]]
             [clojure.math.numeric-tower :as math]))
@@ -32,10 +31,10 @@
     deltas))
 
 (defn find-intersections [path1 path2]
-  (let [path1 (set (filter #(not (= [0 0] %)) path1))
+  (let [path1 (disj (set path1) [0 0])
         path2 (set path2)]
-    (->> path1
-         (filter #(and (contains? path1 %) (contains? path2 %))))))
+
+    (filter #(contains? path2 %) path1)))
 
 
 (defn manhattan [[x y]]
