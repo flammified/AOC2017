@@ -40,7 +40,7 @@
                              0
                              (if (= addr 255) [x y] NAT)
                              last-send)))
-                  (if (> counter 75)
+                  (if (> counter 1000)
                     (do
                       (if (= NAT last-send)
                         (second last-send)
@@ -63,4 +63,5 @@
 (defn part-1 []
   (run-network))
 
-(println (part-1))
+(defn part-2 []
+  (run-network))

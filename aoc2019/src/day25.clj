@@ -38,14 +38,10 @@
                       (assoc-in [:output] [])
                       (assoc-in [:idle] false))]
           (let [directions (directions output)]
-            (println (str/join (map char output)))
             (if (empty? inputs)
-              nil
+              (str/join (map char output))
               (recur (write state (first inputs)) (drop 1 inputs))))))))
 
 
 (defn part-1 []
   (run))
-
-
-; (println (part-1))

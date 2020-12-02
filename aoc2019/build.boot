@@ -5,13 +5,12 @@
                  [org.clojure/math.numeric-tower "0.0.4"]
                  [org.clojure/core.async "0.6.532"]
                  [aysylu/loom "1.0.2"]
+                 [com.taoensso/tufte "2.1.0"]
 
 
                  ;; Visualization stuff
                  [quil/quil "2.2.4"]
                  [gil "1.0.0-SNAPSHOT"]]
-
-
 
  :resource-paths #{"resources" "src"})
 

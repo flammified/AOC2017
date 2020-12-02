@@ -60,12 +60,10 @@
 
     (send-function in "RUN\n")
     (loop []
-      (let [text (<!! out)]
-        ; (print (char text))
         (if (some? text)
           (cond
             (> text 120) text
-            :else (do (print (char text)) (recur))))))))
+            :else (do (print (char text)) (recur)))))))
 
 (defn part-1 []
   (program-1))
