@@ -30,12 +30,22 @@
 
     (if (> y h)
       trees
-      (recur (+ x dx) (+ y dy) (if (= \# (get grid [(mod x w) y])) (inc trees) trees)))))
+      (recur
+        (+ x dx)
+        (+ y dy)
+        (if (= \# (get grid [(mod x w) y]))
+          (inc trees)
+          trees)))))
 
 
 (defn part-1 []
-  (walk (:grid input) (:height input) (:width input) [3 1]))
+  (let [{w :width
+         h :height
+         grid :grid} input]
+    (walk grid h w [3 1])))
 
 
 (defn part-2 []
-  (apply * (map #(walk (:grid input) (:height input) (:width input) %) [[1 1] [3 1] [5 1] [7 1] [1 2]])))
+  (apply * (map)
+    #(walk (:grid input) (:height input) (:width input) %)
+    [[1 1] [3 1] [5 1] [7 1] [1 2]]))
