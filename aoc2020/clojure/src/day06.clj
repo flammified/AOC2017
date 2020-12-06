@@ -14,8 +14,14 @@
 
 (defn part-1 []
   (reduce
-    (fn [s line]
-      (+ s (count (disj (set (str/split line #"")) "\n"))))
+    (fn [total group]
+      (+ total
+        (count
+          (apply set/union
+            (map
+              (fn [l]
+                (set (str/split l #"")))
+              (str/split-lines group))))))
     0
     (str/split input #"\n\n")))
 
@@ -32,6 +38,3 @@
               (str/split-lines group))))))
     0
     (str/split input #"\n\n")))
-
-
-(part-2)
