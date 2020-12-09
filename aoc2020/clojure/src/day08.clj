@@ -6,12 +6,9 @@
             [clojure.set :as set]))
 
 (defn parse [l]
-  (let [digit (map edn/read-string (re-seq #"-?\d+" l))
-        action (if (str/includes? l "+") :add :subtract)
+  (let [digit (first (map edn/read-strin (re-seq #"-?\d+" l)))
         [op _] (str/split l #" ")]
-
     {:digit (Math/abs (first digit))
-     :action action
      :op (keyword op)}))
 
 
@@ -41,21 +38,11 @@
                    (update state :index inc)
                    (conj visited (:index state)))
             :jmp (recur
-                   (-> state
-                     (update :index
-                       #(case action
-                          :add (+ % digit)
-                          :subtract (- % digit)
-                          :default %)))
+                   (update state :index #(+ digit %))
                    (conj visited (:index state)))
             :acc (recur
                    (-> state
-                     (update :accumulator
-                       (fn [val]
-                         (case action
-                          :add (+ val digit)
-                          :subtract (- val digit)
-                          :default val)))
+                     (update :accumulator #(+ digit %))
                      (update :index inc))
                    (conj visited (:index state)))))))))
 
@@ -75,9 +62,6 @@
   (loop [index 0]
     (let [prog (new-prog index)
           [good val] (terminates? prog)]
-
       (if good
         val
         (recur (inc index))))))
-
-(println  (part-1) (part-2))
