@@ -51,7 +51,6 @@
   (loop [list (drop 1 l)
          cur (first l)
          deltas []]
-    ; (println deltas)
     (if (empty? list)
       deltas
       (recur (drop 1 list) (first list) (conj deltas (- (first list) cur))))))
