@@ -5,9 +5,6 @@
             [clojure.edn :as edn]
             [clojure.set :as set]))
 
-
-
-
 (def input
   (-> "day10/input.txt"
       io/resource

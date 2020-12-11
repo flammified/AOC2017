@@ -12,7 +12,6 @@
 
 (defn calc-pos [s l f]
   (if (> (count l) 1)
-
     (if (= (first s) f)
       (recur (drop 1 s) (drop (/ (count l) 2) l) f)
       (recur (drop 1 s) (take (/ (count l) 2) l) f))

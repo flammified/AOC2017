@@ -6,9 +6,9 @@
             [clojure.set :as set]))
 
 (defn parse [l]
-  (let [digit (first (map edn/read-strin (re-seq #"-?\d+" l)))
+  (let [digit (first (map edn/read-string (re-seq #"-?\d+" l)))
         [op _] (str/split l #" ")]
-    {:digit (Math/abs (first digit))
+    {:digit digit
      :op (keyword op)}))
 
 

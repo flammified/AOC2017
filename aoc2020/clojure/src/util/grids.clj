@@ -2,6 +2,10 @@
   (:require [clojure.math.numeric-tower :as math]
             [clojure.string :as str]))
 
+
+(def cardinals [:north :east :south :west])
+(def extended-cardinals [:north :northeast :east :southeast :south :southwest :west :northwest])
+
 (defn manhattan [[x1 y1] [x2 y2]]
   (+ (math/abs (- x2 x1)) (math/abs (- y2 y1))))
 
@@ -14,6 +18,17 @@
   (let [min-x (apply min (map first nodes))
         min-y (apply min (map second nodes))]
     [min-x min-y]))
+
+(defn reduce-grid [grid f]
+  (reduce-kv
+    (fn [grid y line]
+      (reduce-kv
+        (fn [grid x ch]
+          (f grid [x y] ch))
+        grid
+        (vec line)))
+    {}
+    (vec grid)))
 
 (defn dir [direction]
   (case direction
@@ -56,13 +71,20 @@
     :east [1 0]
     :west [-1 0]
     :north [0 -1]
-    :south [0 1]))
+    :south [0 1]
+    :northeast [1 -1]
+    :southeast [1 1]
+    :southwest [-1 1]
+    :northwest [-1 -1]))
 
 (defn step [pos dir]
   (mapv + pos (direction-to-vector dir)))
 
 (defn neigh [pos]
-  (map (partial step pos) [:north :east :south :west]))
+  (map (partial step pos) cardinals))
+
+(defn neigh-diagonal [pos]
+  (map (partial step pos) extended-cardinals))
 
 (defn draw-sparse
   ([grid ch]

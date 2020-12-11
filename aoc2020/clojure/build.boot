@@ -5,6 +5,7 @@
                  [org.clojure/math.numeric-tower "0.0.4"]
                  [org.clojure/core.async "0.6.532"]
                  [aysylu/loom "1.0.2"]
+                 [ubergraph "0.8.2"]
 
 
                  ;; Visualization stuff
