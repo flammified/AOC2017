@@ -19,7 +19,6 @@
 
 (defn trace [grid position dir]
   (loop [pos (grids/step position dir)]
-    ; (println "CONSIDER " pos (get grid pos))
     (if (not (contains? grid pos))
       nil
       (if (not (= (get grid pos) :floor))
